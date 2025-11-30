@@ -30,6 +30,9 @@ export default function RootLayout({
                   <a href="/" className="hover:text-white transition-colors">
                     Live Triage
                   </a>
+                  <a href="/calls" className="hover:text-white transition-colors">
+                    📞 Calls
+                  </a>
                   <a href="/analytics" className="hover:text-white transition-colors">
                     Analytics
                   </a>
