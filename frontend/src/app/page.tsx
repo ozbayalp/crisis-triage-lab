@@ -379,6 +379,7 @@ export default function DashboardHome() {
   // Stop recording when disconnected
   useEffect(() => {
     if (connectionStatus !== 'connected' && isRecording) {
+      console.log('[Page] Stopping recording because connectionStatus is:', connectionStatus);
       stopRecording();
     }
   }, [connectionStatus, isRecording, stopRecording]);

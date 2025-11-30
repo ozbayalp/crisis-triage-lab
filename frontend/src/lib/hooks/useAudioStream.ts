@@ -298,9 +298,22 @@ export function useAudioStream(options: UseAudioStreamOptions): UseAudioStreamRe
       const processor = audioContext.createScriptProcessor(bufferSize, 1, 1);
       processorRef.current = processor;
 
+      let processCallCount = 0;
       processor.onaudioprocess = (event) => {
+        processCallCount++;
+        
+        // Log first few calls to confirm it's working
+        if (processCallCount <= 3) {
+          console.log('[Audio] onaudioprocess fired #', processCallCount, 'isRecording:', isRecordingRef.current);
+        }
+        
         // Use ref instead of state to avoid stale closure
-        if (!isRecordingRef.current) return;
+        if (!isRecordingRef.current) {
+          if (processCallCount <= 5) {
+            console.log('[Audio] onaudioprocess skipped - not recording');
+          }
+          return;
+        }
 
         const inputData = event.inputBuffer.getChannelData(0);
         
@@ -325,6 +338,18 @@ export function useAudioStream(options: UseAudioStreamOptions): UseAudioStreamRe
       // Connect nodes
       source.connect(processor);
       processor.connect(audioContext.destination);
+
+      console.log('[Audio] Audio graph connected: source -> processor -> destination');
+
+      // Monitor for stream ending
+      stream.getAudioTracks().forEach(track => {
+        track.onended = () => {
+          console.log('[Audio] Audio track ended unexpectedly!');
+        };
+        track.onmute = () => {
+          console.log('[Audio] Audio track muted!');
+        };
+      });
 
       // Start chunk sending interval
       chunkIntervalRef.current = setInterval(processAndSendChunks, chunkIntervalMs);
@@ -364,6 +389,10 @@ export function useAudioStream(options: UseAudioStreamOptions): UseAudioStreamRe
    */
   const stopRecording = useCallback(() => {
     if (!isRecordingRef.current) return;
+
+    // Log why we're stopping (stack trace for debugging)
+    console.log('[Audio] stopRecording called');
+    console.trace('[Audio] Stop recording stack trace');
 
     // Stop recording immediately via ref
     isRecordingRef.current = false;
@@ -416,14 +445,48 @@ export function useAudioStream(options: UseAudioStreamOptions): UseAudioStreamRe
     console.log('Audio recording stopped');
   }, [processAndSendChunks, onStop]);
 
-  // Cleanup on unmount
+  // Cleanup on unmount - use empty deps to only run on actual unmount
+  // We use refs directly to avoid stale closure issues
   useEffect(() => {
     return () => {
+      console.log('[Audio] Component unmounting, cleaning up...');
       if (isRecordingRef.current) {
-        stopRecording();
+        // Inline cleanup instead of calling stopRecording to avoid dependency issues
+        isRecordingRef.current = false;
+        
+        if (chunkIntervalRef.current) {
+          clearInterval(chunkIntervalRef.current);
+          chunkIntervalRef.current = null;
+        }
+        if (levelIntervalRef.current) {
+          clearInterval(levelIntervalRef.current);
+          levelIntervalRef.current = null;
+        }
+        if (processorRef.current) {
+          processorRef.current.disconnect();
+          processorRef.current = null;
+        }
+        if (sourceRef.current) {
+          sourceRef.current.disconnect();
+          sourceRef.current = null;
+        }
+        if (analyserRef.current) {
+          analyserRef.current.disconnect();
+          analyserRef.current = null;
+        }
+        if (audioContextRef.current) {
+          audioContextRef.current.close();
+          audioContextRef.current = null;
+        }
+        if (mediaStreamRef.current) {
+          mediaStreamRef.current.getTracks().forEach((track: MediaStreamTrack) => track.stop());
+          mediaStreamRef.current = null;
+        }
+        chunkBufferRef.current = [];
       }
     };
-  }, [stopRecording]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []); // Empty deps - only run on actual unmount
 
   return {
     isRecording,
