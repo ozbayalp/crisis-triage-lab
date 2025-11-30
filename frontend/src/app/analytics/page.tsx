@@ -393,7 +393,10 @@ export default function AnalyticsPage() {
               <div className="overflow-x-auto">
                 <table className="w-full text-sm">
                   <thead>
-                    <tr className="text-left text-gray-400 border-b border-gray-700">
+                    <tr 
+                      className="text-left"
+                      style={{ color: 'var(--text-tertiary)', borderBottom: '1px solid var(--border-primary)' }}
+                    >
                       <th className="pb-2 pr-4">Time</th>
                       <th className="pb-2 pr-4">Session</th>
                       <th className="pb-2 pr-4">Risk</th>
@@ -403,13 +406,19 @@ export default function AnalyticsPage() {
                       <th className="pb-2">Snippet</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-gray-800">
+                  <tbody style={{ borderColor: 'var(--border-primary)' }}>
                     {recentEvents.slice(0, 20).map((event, idx) => (
-                      <tr key={idx} className="text-gray-300">
-                        <td className="py-2 pr-4 text-gray-500 whitespace-nowrap">
+                      <tr 
+                        key={idx} 
+                        style={{ 
+                          color: 'var(--text-secondary)',
+                          borderBottom: '1px solid var(--border-primary)'
+                        }}
+                      >
+                        <td className="py-2 pr-4 whitespace-nowrap" style={{ color: 'var(--text-tertiary)' }}>
                           {new Date(event.timestamp).toLocaleTimeString()}
                         </td>
-                        <td className="py-2 pr-4 font-mono text-xs text-gray-500">
+                        <td className="py-2 pr-4 font-mono text-xs" style={{ color: 'var(--text-tertiary)' }}>
                           {event.session_id}
                         </td>
                         <td className="py-2 pr-4">
@@ -424,7 +433,7 @@ export default function AnalyticsPage() {
                         <td className="py-2 pr-4">
                           <ModalityBadge modality={event.modality} />
                         </td>
-                        <td className="py-2 text-gray-500 max-w-xs truncate">
+                        <td className="py-2 max-w-xs truncate" style={{ color: 'var(--text-tertiary)' }}>
                           {event.text_snippet || '(hidden)'}
                         </td>
                       </tr>
@@ -436,23 +445,30 @@ export default function AnalyticsPage() {
           </div>
 
           {/* Scenario Presets */}
-          <div className="rounded-lg border border-gray-700 bg-gray-800/30 p-6">
-            <h2 className="text-lg font-semibold text-white mb-4">Test Scenarios</h2>
-            <p className="text-sm text-gray-400 mb-4">
-              Quick presets for testing. Go to <a href="/" className="text-blue-400 hover:underline">Live Triage</a> and paste these messages.
+          <div 
+            className="rounded-lg p-6"
+            style={{ background: 'var(--bg-secondary)', border: '1px solid var(--border-primary)' }}
+          >
+            <h2 style={{ fontSize: '16px', fontWeight: 600, marginBottom: '16px', color: 'var(--text-primary)' }}>Test Scenarios</h2>
+            <p className="text-sm mb-4" style={{ color: 'var(--text-tertiary)' }}>
+              Quick presets for testing. Go to <a href="/" className="hover:underline" style={{ color: 'var(--info)' }}>Live Triage</a> and paste these messages.
             </p>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
               {TRIAGE_SCENARIOS.map((scenario) => (
                 <div
                   key={scenario.id}
-                  className="p-3 rounded-lg border border-gray-700 bg-gray-900/50 hover:bg-gray-800/50 transition-colors cursor-pointer"
+                  className="p-3 rounded-lg transition-colors cursor-pointer"
+                  style={{ 
+                    background: 'var(--bg-tertiary)', 
+                    border: '1px solid var(--border-primary)'
+                  }}
                   onClick={() => {
                     navigator.clipboard.writeText(scenario.text);
                     alert('Copied to clipboard! Paste in Live Triage.');
                   }}
                 >
-                  <div className="text-xs text-gray-400 mb-1">{scenario.label}</div>
-                  <div className="text-sm text-gray-300 line-clamp-2">{scenario.text}</div>
+                  <div className="text-xs mb-1" style={{ color: 'var(--text-tertiary)' }}>{scenario.label}</div>
+                  <div className="text-sm line-clamp-2" style={{ color: 'var(--text-secondary)' }}>{scenario.text}</div>
                 </div>
               ))}
             </div>
