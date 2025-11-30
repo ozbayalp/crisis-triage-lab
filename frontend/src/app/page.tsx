@@ -167,79 +167,26 @@ function CurrentTriagePanel({ triage }: { triage: TriageSnapshot | null }) {
   );
 }
 
-/** Three-dot menu for history items */
-function HistoryItemMenu({ 
-  onDelete, 
-  onRename 
-}: { 
-  onDelete: () => void; 
-  onRename: () => void; 
-}) {
-  const [isOpen, setIsOpen] = useState(false);
-
-  return (
-    <div className="relative">
-      <button
-        onClick={() => setIsOpen(!isOpen)}
-        className="p-1 rounded hover:bg-gray-700 transition-colors"
-        style={{ color: 'var(--text-tertiary)' }}
-      >
-        <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-          <path d="M10 6a2 2 0 110-4 2 2 0 010 4zM10 12a2 2 0 110-4 2 2 0 010 4zM10 18a2 2 0 110-4 2 2 0 010 4z" />
-        </svg>
-      </button>
-      {isOpen && (
-        <>
-          <div 
-            className="fixed inset-0 z-10" 
-            onClick={() => setIsOpen(false)}
-          />
-          <div 
-            className="absolute right-0 mt-1 w-32 rounded-lg shadow-lg z-20 py-1"
-            style={{ background: 'var(--bg-secondary)', border: '1px solid var(--border-primary)' }}
-          >
-            <button
-              onClick={() => { onRename(); setIsOpen(false); }}
-              className="w-full text-left px-3 py-2 text-sm hover:bg-gray-700 transition-colors"
-              style={{ color: 'var(--text-primary)' }}
-            >
-              Rename
-            </button>
-            <button
-              onClick={() => { onDelete(); setIsOpen(false); }}
-              className="w-full text-left px-3 py-2 text-sm hover:bg-gray-700 transition-colors"
-              style={{ color: 'var(--danger)' }}
-            >
-              Delete
-            </button>
-          </div>
-        </>
-      )}
-    </div>
-  );
-}
-
-/** Triage history list */
+/** Triage scoring history list - shows latest first */
 function HistoryPanel({ 
-  history, 
-  onDeleteItem, 
-  onRenameItem 
+  history 
 }: { 
   history: TriageHistoryEntry[]; 
-  onDeleteItem: (id: string) => void;
-  onRenameItem: (id: string) => void;
 }) {
   if (history.length === 0) {
     return (
       <div className="text-center py-8" style={{ color: 'var(--text-tertiary)' }}>
-        <p>No history yet</p>
+        <p>No scoring history yet</p>
       </div>
     );
   }
 
+  // Sort by timestamp descending (latest first)
+  const sortedHistory = [...history].sort((a, b) => b.timestamp_ms - a.timestamp_ms);
+
   return (
     <div className="space-y-2 max-h-64 overflow-y-auto">
-      {history.map((entry) => (
+      {sortedHistory.map((entry) => (
         <div
           key={entry.id}
           className="flex items-center justify-between p-3 rounded-lg"
@@ -251,17 +198,13 @@ function HistoryPanel({
               {EMOTIONAL_STATE_LABELS[entry.emotional_state]}
             </span>
           </div>
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-3">
             <span className="text-sm font-mono" style={{ color: 'var(--text-tertiary)' }}>
               Score: {entry.urgency_score}
             </span>
             <span className="text-xs" style={{ color: 'var(--text-tertiary)' }}>
               {new Date(entry.timestamp_ms).toLocaleTimeString()}
             </span>
-            <HistoryItemMenu 
-              onDelete={() => onDeleteItem(entry.id)}
-              onRename={() => onRenameItem(entry.id)}
-            />
           </div>
         </div>
       ))}
@@ -280,7 +223,6 @@ export default function DashboardHome() {
   const [showSessionModal, setShowSessionModal] = useState(false);
   const [sessionNameInput, setSessionNameInput] = useState('');
   const [messageInput, setMessageInput] = useState('');
-  const [deletedItems, setDeletedItems] = useState<Set<string>>(new Set());
 
   // Generate a new session ID
   const generateSessionId = useCallback(() => {
@@ -297,7 +239,6 @@ export default function DashboardHome() {
       try {
         const parsed = JSON.parse(saved);
         setPersistedHistory(parsed);
-        setDeletedItems(new Set(JSON.parse(localStorage.getItem('deletedItems') || '[]')));
       } catch (e) {
         console.error('Failed to parse saved history:', e);
       }
@@ -346,11 +287,6 @@ export default function DashboardHome() {
     }
   }, [triageHistory]);
 
-  // Save deleted items to localStorage
-  useEffect(() => {
-    localStorage.setItem('deletedItems', JSON.stringify(Array.from(deletedItems)));
-  }, [deletedItems]);
-
   // Save session info to localStorage
   useEffect(() => {
     if (sessionId && sessionName) {
@@ -396,7 +332,6 @@ export default function DashboardHome() {
     setSessionId(newSessionId);
     setSessionName(sessionNameInput.trim() || `Session ${new Date().toLocaleTimeString()}`);
     setShowSessionModal(false);
-    setDeletedItems(new Set());
     setTimeout(() => connect(), 0);
   }, [generateSessionId, sessionNameInput, connect]);
 
@@ -406,38 +341,14 @@ export default function DashboardHome() {
     setSessionId(null);
     setSessionName('');
     clearHistory();
-    setDeletedItems(new Set());
   }, [disconnect, clearHistory]);
 
-  // Delete history item (client-side only)
-  const handleDeleteItem = useCallback((id: string) => {
-    setDeletedItems(prev => {
-      const newSet = new Set(prev);
-      newSet.add(id);
-      return newSet;
-    });
-  }, []);
-
-  // Rename history item (placeholder - would need backend support)
-  const handleRenameItem = useCallback((id: string) => {
-    const newName = prompt('Enter new name for this entry:');
-    if (newName) {
-      console.log('Rename item', id, 'to', newName);
-      // In a real implementation, this would update the entry
-    }
-  }, []);
-
-  // Clear all history
+  // Clear all scoring history
   const handleClearAll = useCallback(() => {
     clearHistory();
     setPersistedHistory([]);
-    setDeletedItems(new Set());
     localStorage.removeItem('triageHistory');
-    localStorage.removeItem('deletedItems');
   }, [clearHistory]);
-
-  // Filter out deleted items from persisted history
-  const filteredHistory = persistedHistory.filter(entry => !deletedItems.has(entry.id));
 
   // Send text message
   const handleSendMessage = useCallback(
@@ -776,14 +687,14 @@ export default function DashboardHome() {
             style={{ background: 'var(--bg-secondary)', border: '1px solid var(--border-primary)' }}
           >
             <div className="flex items-center justify-between mb-4">
-              <h2 style={{ fontSize: '16px', fontWeight: 600 }}>History</h2>
+              <h2 style={{ fontSize: '16px', fontWeight: 600 }}>Scoring History</h2>
               <div className="flex items-center gap-3">
-                {filteredHistory.length > 0 && (
+                {persistedHistory.length > 0 && (
                   <span style={{ fontSize: '12px', color: 'var(--text-tertiary)' }}>
-                    {filteredHistory.length} results
+                    {persistedHistory.length} results
                   </span>
                 )}
-                {filteredHistory.length > 0 && (
+                {persistedHistory.length > 0 && (
                   <button
                     onClick={handleClearAll}
                     className="px-2 py-1 rounded text-xs transition-colors"
@@ -798,11 +709,7 @@ export default function DashboardHome() {
                 )}
               </div>
             </div>
-            <HistoryPanel 
-              history={filteredHistory} 
-              onDeleteItem={handleDeleteItem}
-              onRenameItem={handleRenameItem}
-            />
+            <HistoryPanel history={persistedHistory} />
           </div>
         </div>
 
