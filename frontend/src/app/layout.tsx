@@ -38,8 +38,8 @@ export default function RootLayout({
                     <div 
                       className="h-8 w-8 rounded-lg flex items-center justify-center"
                       style={{ 
-                        background: 'linear-gradient(135deg, #3B82F6 0%, #1D4ED8 100%)',
-                        boxShadow: '0 2px 4px rgba(59, 130, 246, 0.3)'
+                        background: 'linear-gradient(135deg, #F59E0B 0%, #D97706 100%)',
+                        boxShadow: '0 2px 4px rgba(245, 158, 11, 0.3)'
                       }} 
                     >
                       <svg 

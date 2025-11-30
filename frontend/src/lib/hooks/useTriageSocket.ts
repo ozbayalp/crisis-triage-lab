@@ -304,12 +304,13 @@ export function useTriageSocket(
 
   const sendAudioChunk = useCallback((chunk: ArrayBuffer) => {
     if (!wsRef.current || wsRef.current.readyState !== WebSocket.OPEN) {
-      // Silently drop audio if not connected (normal during shutdown)
+      console.log('[WS] Cannot send audio: not connected, state:', wsRef.current?.readyState);
       return;
     }
 
     // Send binary audio data directly
     wsRef.current.send(chunk);
+    console.log('[WS] Sent audio chunk:', chunk.byteLength, 'bytes');
   }, []);
 
   const sendControl = useCallback((action: 'pause' | 'resume' | 'end') => {

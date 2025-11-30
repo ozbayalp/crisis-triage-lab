@@ -185,7 +185,10 @@ export function useAudioStream(options: UseAudioStreamOptions): UseAudioStreamRe
    * Process buffered audio chunks and send to callback.
    */
   const processAndSendChunks = useCallback(() => {
-    if (chunkBufferRef.current.length === 0) return;
+    if (chunkBufferRef.current.length === 0) {
+      console.log('[Audio] No chunks to process');
+      return;
+    }
 
     // Combine all buffered chunks
     const totalLength = chunkBufferRef.current.reduce((acc: number, chunk: Float32Array) => acc + chunk.length, 0);
@@ -207,6 +210,8 @@ export function useAudioStream(options: UseAudioStreamOptions): UseAudioStreamRe
 
     // Convert to PCM 16-bit
     const pcm16 = floatTo16BitPCM(resampled);
+
+    console.log('[Audio] Sending chunk:', pcm16.byteLength, 'bytes, samples:', resampled.length, 'source rate:', sourceSampleRate);
 
     // Send as ArrayBuffer (cast to avoid TypeScript strict type check)
     onAudioChunk(pcm16.buffer as ArrayBuffer);
@@ -256,9 +261,25 @@ export function useAudioStream(options: UseAudioStreamOptions): UseAudioStreamRe
       mediaStreamRef.current = stream;
       setHasPermission(true);
 
+      // Log stream info for debugging
+      const audioTracks = stream.getAudioTracks();
+      console.log('[Audio] Got MediaStream with', audioTracks.length, 'audio tracks');
+      audioTracks.forEach((track, i) => {
+        console.log(`[Audio] Track ${i}:`, track.label, 'enabled:', track.enabled, 'muted:', track.muted, 'readyState:', track.readyState);
+      });
+
       // Create audio context
       const audioContext = new (window.AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext)();
       audioContextRef.current = audioContext;
+
+      // Resume audio context if suspended (browser autoplay policy)
+      if (audioContext.state === 'suspended') {
+        console.log('[Audio] AudioContext suspended, resuming...');
+        await audioContext.resume();
+        console.log('[Audio] AudioContext resumed, state:', audioContext.state);
+      }
+
+      console.log('[Audio] AudioContext created, state:', audioContext.state, 'sampleRate:', audioContext.sampleRate);
 
       // Create source from stream
       const source = audioContext.createMediaStreamSource(stream);
@@ -282,10 +303,23 @@ export function useAudioStream(options: UseAudioStreamOptions): UseAudioStreamRe
         if (!isRecordingRef.current) return;
 
         const inputData = event.inputBuffer.getChannelData(0);
+        
+        // Check if there's actual audio data (not silence)
+        let maxVal = 0;
+        for (let i = 0; i < inputData.length; i++) {
+          const absVal = Math.abs(inputData[i]);
+          if (absVal > maxVal) maxVal = absVal;
+        }
+        
         // Copy the data (input buffer will be reused)
         const chunk = new Float32Array(inputData.length);
         chunk.set(inputData);
         chunkBufferRef.current.push(chunk);
+        
+        // Debug: log every 10th chunk with max value
+        if (chunkBufferRef.current.length % 10 === 0) {
+          console.log('[Audio] Captured chunk #', chunkBufferRef.current.length, 'max amplitude:', maxVal.toFixed(4));
+        }
       };
 
       // Connect nodes
