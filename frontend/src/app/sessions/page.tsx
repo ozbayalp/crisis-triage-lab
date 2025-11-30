@@ -94,18 +94,21 @@ export default function SessionsPage() {
   };
 
   return (
-    <div className="container mx-auto px-4 py-8">
+    <div className="max-w-7xl mx-auto">
       {/* Header */}
       <div className="mb-8">
-        <h1 className="text-3xl font-bold text-white mb-2">Session History</h1>
-        <p className="text-gray-400">
+        <h1 style={{ fontSize: '32px', fontWeight: 600, letterSpacing: '-0.01em', marginBottom: '8px' }}>Session History</h1>
+        <p style={{ color: 'var(--text-secondary)' }}>
           View and analyze past triage sessions. Data is ephemeral and stored in memory only.
         </p>
       </div>
 
       {/* Error Display */}
       {error && (
-        <div className="mb-6 p-4 rounded-lg bg-red-900/30 border border-red-700 text-red-400">
+        <div 
+          className="mb-6 p-4 rounded-lg"
+          style={{ background: 'var(--bg-tertiary)', border: '1px solid var(--danger)', color: 'var(--danger)' }}
+        >
           {error}
         </div>
       )}
@@ -113,22 +116,25 @@ export default function SessionsPage() {
       {/* Loading State */}
       {loading && (
         <div className="flex items-center justify-center py-12">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500" />
-          <span className="ml-3 text-gray-400">Loading sessions...</span>
+          <div 
+            className="animate-spin rounded-full h-8 w-8 border-b-2"
+            style={{ borderColor: 'var(--accent)' }}
+          />
+          <span className="ml-3" style={{ color: 'var(--text-tertiary)' }}>Loading sessions...</span>
         </div>
       )}
 
       {/* Empty State */}
       {!loading && sessions.length === 0 && (
         <div className="text-center py-12">
-          <div className="text-6xl mb-4">📋</div>
-          <h2 className="text-xl font-semibold text-white mb-2">No Sessions Yet</h2>
-          <p className="text-gray-400 mb-6">
+          <h2 className="text-xl font-semibold mb-2">No Sessions Yet</h2>
+          <p style={{ color: 'var(--text-tertiary)', marginBottom: '24px' }}>
             Start a triage session from the Live Triage page to see history here.
           </p>
           <a
             href="/"
-            className="inline-flex items-center px-4 py-2 rounded-lg bg-blue-600 hover:bg-blue-700 text-white transition-colors"
+            className="inline-flex items-center px-4 py-2 rounded-lg transition-colors"
+            style={{ background: 'var(--accent)', color: 'var(--bg-primary)' }}
           >
             Go to Live Triage
           </a>
@@ -139,33 +145,52 @@ export default function SessionsPage() {
       {!loading && sessions.length > 0 && (
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* Sessions List */}
-          <div className="lg:col-span-1 space-y-4">
+          <div 
+            className="lg:col-span-1 rounded-lg p-6"
+            style={{ background: 'var(--bg-secondary)', border: '1px solid var(--border-primary)' }}
+          >
             <div className="flex items-center justify-between mb-4">
-              <h2 className="text-lg font-semibold text-white">Sessions ({sessions.length})</h2>
-              <button
-                onClick={fetchEvents}
-                className="text-sm text-blue-400 hover:text-blue-300 transition-colors"
-              >
-                Refresh
-              </button>
+              <h2 style={{ fontSize: '16px', fontWeight: 600 }}>Sessions ({sessions.length})</h2>
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={fetchEvents}
+                  className="px-3 py-1 text-sm rounded-lg transition-colors"
+                  style={{ background: 'var(--bg-tertiary)', color: 'var(--text-secondary)', border: '1px solid var(--border-primary)' }}
+                >
+                  Refresh
+                </button>
+                <button
+                  onClick={() => {
+                    if (confirm('Clear all session data?')) {
+                      setSessions([]);
+                      setEvents([]);
+                      setSelectedSession(null);
+                    }
+                  }}
+                  className="px-3 py-1 text-sm rounded-lg transition-colors"
+                  style={{ background: 'var(--bg-tertiary)', color: 'var(--danger)', border: '1px solid var(--border-primary)' }}
+                >
+                  Clear All
+                </button>
+              </div>
             </div>
             
-            <div className="space-y-3 max-h-[600px] overflow-y-auto pr-2">
+            <div className="space-y-3 max-h-[500px] overflow-y-auto">
               {sessions.map((session) => (
                 <button
                   key={session.sessionId}
                   onClick={() => setSelectedSession(session.sessionId)}
-                  className={`w-full text-left p-4 rounded-lg border transition-colors ${
-                    selectedSession === session.sessionId
-                      ? 'bg-blue-900/30 border-blue-600'
-                      : 'bg-gray-800/30 border-gray-700 hover:border-gray-600'
-                  }`}
+                  className="w-full text-left p-4 rounded-lg transition-colors"
+                  style={{
+                    background: selectedSession === session.sessionId ? 'var(--accent-subtle)' : 'var(--bg-tertiary)',
+                    border: `1px solid ${selectedSession === session.sessionId ? 'var(--accent)' : 'var(--border-primary)'}`
+                  }}
                 >
                   <div className="flex items-center justify-between mb-2">
-                    <span className="font-mono text-sm text-white">
+                    <span className="font-mono text-sm">
                       {session.sessionId}
                     </span>
-                    <span className="text-xs text-gray-500">
+                    <span className="text-xs" style={{ color: 'var(--text-tertiary)' }}>
                       {session.eventCount} events
                     </span>
                   </div>
@@ -182,7 +207,7 @@ export default function SessionsPage() {
                     ))}
                   </div>
                   
-                  <div className="flex items-center justify-between text-xs text-gray-400">
+                  <div className="flex items-center justify-between text-xs" style={{ color: 'var(--text-tertiary)' }}>
                     <span>Max urgency: {session.maxUrgency}</span>
                     <span>{session.lastEvent.toLocaleTimeString()}</span>
                   </div>
@@ -194,9 +219,12 @@ export default function SessionsPage() {
           {/* Session Details */}
           <div className="lg:col-span-2">
             {selectedSession ? (
-              <div className="rounded-lg border border-gray-700 bg-gray-800/30 p-6">
+              <div 
+                className="rounded-lg p-6"
+                style={{ background: 'var(--bg-secondary)', border: '1px solid var(--border-primary)' }}
+              >
                 <div className="flex items-center justify-between mb-6">
-                  <h2 className="text-lg font-semibold text-white">
+                  <h2 style={{ fontSize: '16px', fontWeight: 600 }}>
                     Session: <span className="font-mono text-blue-400">{selectedSession}</span>
                   </h2>
                   <button
@@ -210,36 +238,37 @@ export default function SessionsPage() {
                 {/* Session Stats */}
                 {sessions.find(s => s.sessionId === selectedSession) && (
                   <div className="grid grid-cols-3 gap-4 mb-6">
-                    <div className="p-4 rounded-lg bg-gray-900/50">
-                      <div className="text-2xl font-bold text-white">
+                    <div className="p-4 rounded-lg" style={{ background: 'var(--bg-tertiary)' }}>
+                      <div className="text-2xl font-bold">
                         {selectedSessionEvents.length}
                       </div>
-                      <div className="text-sm text-gray-400">Total Events</div>
+                      <div className="text-sm" style={{ color: 'var(--text-tertiary)' }}>Total Events</div>
                     </div>
-                    <div className="p-4 rounded-lg bg-gray-900/50">
-                      <div className="text-2xl font-bold text-white">
+                    <div className="p-4 rounded-lg" style={{ background: 'var(--bg-tertiary)' }}>
+                      <div className="text-2xl font-bold">
                         {Math.round(sessions.find(s => s.sessionId === selectedSession)!.avgUrgency)}
                       </div>
-                      <div className="text-sm text-gray-400">Avg Urgency</div>
+                      <div className="text-sm" style={{ color: 'var(--text-tertiary)' }}>Avg Urgency</div>
                     </div>
-                    <div className="p-4 rounded-lg bg-gray-900/50">
-                      <div className="text-2xl font-bold text-white">
+                    <div className="p-4 rounded-lg" style={{ background: 'var(--bg-tertiary)' }}>
+                      <div className="text-2xl font-bold">
                         {sessions.find(s => s.sessionId === selectedSession)!.maxUrgency}
                       </div>
-                      <div className="text-sm text-gray-400">Max Urgency</div>
+                      <div className="text-sm" style={{ color: 'var(--text-tertiary)' }}>Max Urgency</div>
                     </div>
                   </div>
                 )}
 
                 {/* Events Timeline */}
-                <h3 className="text-sm font-medium text-gray-400 mb-4">Event Timeline</h3>
+                <h3 className="text-sm font-medium mb-4" style={{ color: 'var(--text-tertiary)' }}>Event Timeline</h3>
                 <div className="space-y-3 max-h-[400px] overflow-y-auto">
                   {selectedSessionEvents
                     .sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime())
                     .map((event, idx) => (
                       <div
                         key={idx}
-                        className="p-4 rounded-lg bg-gray-900/50 border border-gray-700"
+                        className="p-4 rounded-lg"
+                        style={{ background: 'var(--bg-tertiary)', border: '1px solid var(--border-primary)' }}
                       >
                         <div className="flex items-center justify-between mb-2">
                           <div className="flex items-center gap-2">
@@ -248,32 +277,35 @@ export default function SessionsPage() {
                             >
                               {event.risk_level}
                             </span>
-                            <span className="text-sm text-gray-300">
+                            <span className="text-sm" style={{ color: 'var(--text-secondary)' }}>
                               {event.emotional_state}
                             </span>
                           </div>
-                          <span className="text-xs text-gray-500">
+                          <span className="text-xs" style={{ color: 'var(--text-tertiary)' }}>
                             {new Date(event.timestamp).toLocaleString()}
                           </span>
                         </div>
                         
                         <div className="grid grid-cols-3 gap-4 text-sm">
                           <div>
-                            <span className="text-gray-500">Urgency:</span>{' '}
-                            <span className="text-white font-medium">{event.urgency_score}</span>
+                            <span style={{ color: 'var(--text-tertiary)' }}>Urgency:</span>{' '}
+                            <span className="font-medium">{event.urgency_score}</span>
                           </div>
                           <div>
-                            <span className="text-gray-500">Confidence:</span>{' '}
-                            <span className="text-white font-medium">{(event.confidence * 100).toFixed(0)}%</span>
+                            <span style={{ color: 'var(--text-tertiary)' }}>Confidence:</span>{' '}
+                            <span className="font-medium">{(event.confidence * 100).toFixed(0)}%</span>
                           </div>
                           <div>
-                            <span className="text-gray-500">Modality:</span>{' '}
-                            <span className="text-white font-medium">{event.modality}</span>
+                            <span style={{ color: 'var(--text-tertiary)' }}>Modality:</span>{' '}
+                            <span className="font-medium">{event.modality}</span>
                           </div>
                         </div>
                         
                         {event.text_snippet && (
-                          <div className="mt-2 p-2 rounded bg-gray-800 text-sm text-gray-300 italic">
+                          <div 
+                            className="mt-2 p-2 rounded text-sm italic"
+                            style={{ background: 'var(--bg-secondary)', color: 'var(--text-secondary)' }}
+                          >
                             "{event.text_snippet}"
                           </div>
                         )}
@@ -282,9 +314,11 @@ export default function SessionsPage() {
                 </div>
               </div>
             ) : (
-              <div className="rounded-lg border border-gray-700 bg-gray-800/30 p-12 text-center">
-                <div className="text-4xl mb-4">👈</div>
-                <p className="text-gray-400">Select a session to view details</p>
+              <div 
+                className="rounded-lg p-12 text-center"
+                style={{ background: 'var(--bg-secondary)', border: '1px solid var(--border-primary)' }}
+              >
+                <p style={{ color: 'var(--text-tertiary)' }}>Select a session to view details</p>
               </div>
             )}
           </div>
@@ -292,9 +326,12 @@ export default function SessionsPage() {
       )}
 
       {/* Footer Note */}
-      <div className="mt-8 p-4 rounded-lg bg-gray-800/30 border border-gray-700">
-        <p className="text-sm text-gray-500">
-          <strong className="text-gray-400">Note:</strong> Session data is stored in memory only and will be 
+      <div 
+        className="mt-8 p-4 rounded-lg"
+        style={{ background: 'var(--bg-secondary)', border: '1px solid var(--border-primary)' }}
+      >
+        <p className="text-sm" style={{ color: 'var(--text-tertiary)' }}>
+          <strong style={{ color: 'var(--text-secondary)' }}>Note:</strong> Session data is stored in memory only and will be 
           cleared when the backend restarts. This is intentional for privacy. Session IDs shown here are 
           truncated (first 8 characters) for display purposes.
         </p>

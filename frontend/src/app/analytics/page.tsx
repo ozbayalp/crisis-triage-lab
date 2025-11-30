@@ -41,7 +41,7 @@ function StatCard({
   label,
   value,
   subtext,
-  color = 'text-white',
+  color,
 }: {
   label: string;
   value: string | number;
@@ -49,10 +49,16 @@ function StatCard({
   color?: string;
 }) {
   return (
-    <div className="rounded-lg border border-gray-700 bg-gray-800/50 p-4">
-      <div className="text-xs text-gray-400 uppercase tracking-wide mb-1">{label}</div>
-      <div className={`text-2xl font-bold ${color}`}>{value}</div>
-      {subtext && <div className="text-xs text-gray-500 mt-1">{subtext}</div>}
+    <div 
+      className="rounded-lg p-4"
+      style={{ background: 'var(--bg-secondary)', border: '1px solid var(--border-primary)' }}
+    >
+      <div 
+        className="text-xs uppercase tracking-wide mb-1"
+        style={{ color: 'var(--text-tertiary)', letterSpacing: '0.04em' }}
+      >{label}</div>
+      <div className={`text-2xl font-bold ${color || ''}`}>{value}</div>
+      {subtext && <div className="text-xs mt-1" style={{ color: 'var(--text-tertiary)' }}>{subtext}</div>}
     </div>
   );
 }
@@ -72,10 +78,10 @@ function DistributionBar({
   return (
     <div className="space-y-1">
       <div className="flex justify-between text-sm">
-        <span className="text-gray-300 capitalize">{label}</span>
-        <span className="text-gray-400">{count} ({percentage.toFixed(1)}%)</span>
+        <span className="capitalize" style={{ color: 'var(--text-secondary)' }}>{label}</span>
+        <span style={{ color: 'var(--text-tertiary)' }}>{count} ({percentage.toFixed(1)}%)</span>
       </div>
-      <div className="h-2 bg-gray-700 rounded-full overflow-hidden">
+      <div className="h-2 rounded-full overflow-hidden" style={{ background: 'var(--bg-tertiary)' }}>
         <div
           className={`h-full ${color} transition-all duration-300`}
           style={{ width: `${Math.min(percentage, 100)}%` }}
@@ -190,12 +196,12 @@ export default function AnalyticsPage() {
   // Disabled state
   if (isDisabled) {
     return (
-      <div className="container mx-auto px-4 py-8 max-w-7xl">
+      <div className="max-w-7xl mx-auto">
         <div className="text-center py-16">
-          <h1 className="text-2xl font-bold text-gray-400 mb-4">Analytics Disabled</h1>
-          <p className="text-gray-500">
+          <h1 className="text-2xl font-bold mb-4" style={{ color: 'var(--text-secondary)' }}>Analytics Disabled</h1>
+          <p style={{ color: 'var(--text-tertiary)' }}>
             Analytics is disabled in this deployment.
-            Set <code className="bg-gray-800 px-2 py-1 rounded">ENABLE_ANALYTICS=true</code> to enable.
+            Set <code style={{ background: 'var(--bg-tertiary)', padding: '4px 8px', borderRadius: '4px' }}>ENABLE_ANALYTICS=true</code> to enable.
           </p>
         </div>
       </div>
@@ -203,29 +209,31 @@ export default function AnalyticsPage() {
   }
 
   return (
-    <div className="container mx-auto px-4 py-8 max-w-7xl">
+    <div className="max-w-7xl mx-auto">
       {/* Header with disclaimer */}
-      <div className="mb-6">
+      <div className="mb-8">
         <div className="flex items-center justify-between mb-4">
           <div>
-            <h1 className="text-3xl font-bold text-white">Triage Analytics</h1>
-            <p className="text-gray-400 mt-1">
+            <h1 style={{ fontSize: '32px', fontWeight: 600, letterSpacing: '-0.01em' }}>Triage Analytics</h1>
+            <p style={{ color: 'var(--text-secondary)', marginTop: '4px' }}>
               Aggregated insights across sessions{' '}
-              <span className="text-yellow-500 text-sm">(simulated data only)</span>
+              <span style={{ color: 'var(--warning)', fontSize: '13px' }}>(simulated data only)</span>
             </p>
           </div>
           <div className="flex items-center gap-4">
             <button
               onClick={loadData}
               disabled={isLoading}
-              className="px-4 py-2 text-sm font-medium text-gray-300 bg-gray-700 hover:bg-gray-600 rounded-lg transition-colors disabled:opacity-50"
+              className="px-4 py-2 text-sm font-medium rounded-lg transition-colors disabled:opacity-50"
+              style={{ background: 'var(--bg-tertiary)', color: 'var(--text-secondary)', border: '1px solid var(--border-primary)' }}
             >
               {isLoading ? 'Refreshing...' : 'Refresh'}
             </button>
             <button
               onClick={handleClear}
               disabled={isClearing || isLoading}
-              className="px-4 py-2 text-sm font-medium text-red-300 bg-red-900/30 hover:bg-red-900/50 rounded-lg transition-colors disabled:opacity-50"
+              className="px-4 py-2 text-sm font-medium rounded-lg transition-colors disabled:opacity-50"
+              style={{ background: 'var(--bg-tertiary)', color: 'var(--danger)', border: '1px solid var(--danger)' }}
             >
               {isClearing ? 'Clearing...' : 'Clear Data'}
             </button>
@@ -233,7 +241,10 @@ export default function AnalyticsPage() {
         </div>
 
         {/* Research disclaimer */}
-        <div className="p-3 rounded-lg bg-yellow-900/30 border border-yellow-700 text-yellow-200 text-sm">
+        <div 
+          className="p-3 rounded-lg text-sm"
+          style={{ background: 'var(--bg-tertiary)', border: '1px solid var(--warning)', color: 'var(--warning)' }}
+        >
           <strong>Research Only:</strong> Analytics are computed on simulated data for research purposes.
           No real user or clinical data is used or stored.
         </div>
@@ -241,7 +252,10 @@ export default function AnalyticsPage() {
 
       {/* Error display */}
       {error && (
-        <div className="mb-6 p-4 rounded-lg bg-red-900/30 border border-red-700 text-red-400">
+        <div 
+          className="mb-6 p-4 rounded-lg"
+          style={{ background: 'var(--bg-tertiary)', border: '1px solid var(--danger)', color: 'var(--danger)' }}
+        >
           Error: {error}
         </div>
       )}
@@ -249,7 +263,7 @@ export default function AnalyticsPage() {
       {/* Loading state */}
       {isLoading && !analytics && (
         <div className="text-center py-16">
-          <div className="text-gray-400">Loading analytics...</div>
+          <div style={{ color: 'var(--text-tertiary)' }}>Loading analytics...</div>
         </div>
       )}
 
@@ -284,8 +298,11 @@ export default function AnalyticsPage() {
           {/* Distributions */}
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
             {/* Risk Distribution */}
-            <div className="rounded-lg border border-gray-700 bg-gray-800/30 p-6">
-              <h2 className="text-lg font-semibold text-white mb-4">Risk Distribution</h2>
+            <div 
+              className="rounded-lg p-6"
+              style={{ background: 'var(--bg-secondary)', border: '1px solid var(--border-primary)' }}
+            >
+              <h2 style={{ fontSize: '16px', fontWeight: 600, marginBottom: '16px' }}>Risk Distribution</h2>
               <div className="space-y-3">
                 {(['low', 'medium', 'high', 'imminent'] as RiskLevel[]).map((level) => {
                   const count = analytics.risk_counts[level] || 0;
@@ -304,8 +321,11 @@ export default function AnalyticsPage() {
             </div>
 
             {/* Emotion Distribution */}
-            <div className="rounded-lg border border-gray-700 bg-gray-800/30 p-6">
-              <h2 className="text-lg font-semibold text-white mb-4">Emotion Distribution</h2>
+            <div 
+              className="rounded-lg p-6"
+              style={{ background: 'var(--bg-secondary)', border: '1px solid var(--border-primary)' }}
+            >
+              <h2 style={{ fontSize: '16px', fontWeight: 600, marginBottom: '16px' }}>Emotion Distribution</h2>
               <div className="space-y-3">
                 {(['calm', 'anxious', 'distressed', 'panicked'] as EmotionalState[]).map((emotion) => {
                   const count = analytics.emotion_counts[emotion] || 0;
@@ -331,8 +351,11 @@ export default function AnalyticsPage() {
             </div>
 
             {/* Modality Distribution */}
-            <div className="rounded-lg border border-gray-700 bg-gray-800/30 p-6">
-              <h2 className="text-lg font-semibold text-white mb-4">Input Modality</h2>
+            <div 
+              className="rounded-lg p-6"
+              style={{ background: 'var(--bg-secondary)', border: '1px solid var(--border-primary)' }}
+            >
+              <h2 style={{ fontSize: '16px', fontWeight: 600, marginBottom: '16px' }}>Input Modality</h2>
               <div className="space-y-3">
                 {(['text', 'audio', 'mixed'] as InputModality[]).map((modality) => {
                   const count = analytics.modality_counts[modality] || 0;
@@ -353,14 +376,17 @@ export default function AnalyticsPage() {
           </div>
 
           {/* Recent Events Table */}
-          <div className="rounded-lg border border-gray-700 bg-gray-800/30 p-6">
+          <div 
+            className="rounded-lg p-6"
+            style={{ background: 'var(--bg-secondary)', border: '1px solid var(--border-primary)' }}
+          >
             <div className="flex items-center justify-between mb-4">
-              <h2 className="text-lg font-semibold text-white">Recent Events</h2>
-              <span className="text-sm text-gray-500">{recentEvents.length} events</span>
+              <h2 style={{ fontSize: '16px', fontWeight: 600 }}>Recent Events</h2>
+              <span className="text-sm" style={{ color: 'var(--text-tertiary)' }}>{recentEvents.length} events</span>
             </div>
             
             {recentEvents.length === 0 ? (
-              <div className="text-center py-8 text-gray-500">
+              <div className="text-center py-8" style={{ color: 'var(--text-tertiary)' }}>
                 No events recorded yet. Use the Live Triage page to generate data.
               </div>
             ) : (

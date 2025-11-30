@@ -4,7 +4,7 @@
 
 ---
 
-> ⚠️ **NOT FOR CLINICAL USE** — This is a research prototype and simulation tool only. It has no clinical validity and must not be used for real crisis intervention, diagnosis, or treatment decisions. See [SAFETY_LIMITATIONS.md](docs/SAFETY_LIMITATIONS.md) for details.
+**IMPORTANT: NOT FOR CLINICAL USE** - This is a research prototype and simulation tool only. It has no clinical validity and must not be used for real crisis intervention, diagnosis, or treatment decisions. See [SAFETY_LIMITATIONS.md](docs/SAFETY_LIMITATIONS.md) for details.
 
 ---
 
@@ -21,14 +21,14 @@ To produce actionable triage outputs:
 |--------|-------------|
 | **Emotional State** | calm / anxious / distressed / panicked |
 | **Risk Level** | low / medium / high / imminent |
-| **Urgency Score** | 0–100 interpretable scale |
+| **Urgency Score** | 0-100 interpretable scale |
 | **Recommended Action** | keep listening / ask follow-up / escalate to human |
 
 ## Privacy-First Design
 
-- 🔒 **All inference runs locally** — no raw audio or transcripts sent to external APIs
-- 🗑️ **Ephemeral by default** — raw data is not persisted unless explicitly configured
-- 🧱 **Separation of concerns** — raw data, features, and model outputs are isolated
+- **All inference runs locally** - no raw audio or transcripts sent to external APIs
+- **Ephemeral by default** - raw data is not persisted unless explicitly configured
+- **Separation of concerns** - raw data, features, and model outputs are isolated
 
 ## Architecture Overview
 
@@ -142,23 +142,26 @@ Frontend tests are planned for future implementation.
 
 ## Status
 
-🚧 **Active development** — Core pipeline, analytics, ML training, and testing complete.
+**Active development** - Core pipeline, analytics, ML training, telephony integration, and testing complete.
 
 ### Completed
 
-- ✅ Real-time text and audio processing pipeline
-- ✅ Whisper transcription and Librosa prosody extraction
-- ✅ Neural triage classifier with training/evaluation stack
-- ✅ Live triage dashboard and analytics dashboard
-- ✅ Privacy-first configuration and ephemeral defaults
-- ✅ Backend test suite with pytest
+- Real-time text and audio processing pipeline
+- Whisper transcription and Librosa prosody extraction
+- Neural triage classifier with training/evaluation stack
+- Live triage dashboard and analytics dashboard
+- Privacy-first configuration and ephemeral defaults
+- Backend test suite with pytest (73+ tests)
+- Phone call integration infrastructure (Twilio-ready)
+- Dark/light mode UI with Vercel Design System
 
 ### Future Work
 
-- 🔲 Frontend tests
-- 🔲 Prosody-aware neural models
-- 🔲 Multilingual support
-- 🔲 Formal evaluation on benchmark datasets
+- Frontend tests
+- Prosody-aware neural models
+- Multilingual support
+- Formal evaluation on benchmark datasets
+- Twilio production integration
 
 ## License
 

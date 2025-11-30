@@ -41,7 +41,7 @@ async def lifespan(app: FastAPI):
         - Flush any pending metrics
     """
     # === Startup ===
-    logger.info("🚀 CrisisTriage AI starting in %s mode", settings.app_env)
+    logger.info("CrisisTriage AI starting in %s mode", settings.app_env)
     
     # Create the triage pipeline with configured services
     pipeline = create_pipeline(settings)
@@ -53,7 +53,7 @@ async def lifespan(app: FastAPI):
     # Warm up the pipeline (loads models, runs dummy inference)
     await pipeline.startup()
     
-    logger.info("✅ Pipeline initialized and ready")
+    logger.info("Pipeline initialized and ready")
     logger.info(
         "   Privacy: anonymize_logs=%s, store_transcripts=%s, store_audio=%s",
         settings.anonymize_logs,
@@ -86,7 +86,7 @@ async def lifespan(app: FastAPI):
     yield
     
     # === Shutdown ===
-    logger.info("👋 CrisisTriage AI shutting down")
+    logger.info("CrisisTriage AI shutting down")
     
     # Shutdown telephony if enabled
     if settings.enable_telephony_integration and hasattr(app.state, 'call_store'):
@@ -94,7 +94,7 @@ async def lifespan(app: FastAPI):
         logger.info("   Telephony shutdown complete")
     
     await pipeline.shutdown()
-    logger.info("✅ Shutdown complete")
+    logger.info("Shutdown complete")
 
 
 def create_app() -> FastAPI:

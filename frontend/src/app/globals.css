@@ -3,18 +3,71 @@
 @tailwind utilities;
 
 /* ============================================
-   CrisisTriage AI - Global Styles
+   CrisisTriage AI - Vercel Design System
    ============================================ */
 
+/* Geist Font Import */
+@import url('https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=Geist+Mono:wght@400;500&display=swap');
+
+/* Light Mode (Default) */
 :root {
-  --background: #030712;
-  --foreground: #f9fafb;
+  --bg-primary: #FFFFFF;
+  --bg-secondary: #F9FAFB;
+  --bg-tertiary: #F3F4F6;
+  --text-primary: #111111;
+  --text-secondary: #525252;
+  --text-tertiary: #737373;
+  --border-primary: #E5E7EB;
+  --border-secondary: #D1D5DB;
+  --accent: #000000;
+  --accent-hover: #111111;
+  --accent-subtle: rgba(0, 0, 0, 0.05);
+  --success: #22C55E;
+  --warning: #F59E0B;
+  --danger: #EF4444;
+  --info: #3B82F6;
+}
+
+/* Dark Mode */
+[data-theme="dark"] {
+  --bg-primary: #0A0A0A;
+  --bg-secondary: #111111;
+  --bg-tertiary: #1A1A1A;
+  --text-primary: #FAFAFA;
+  --text-secondary: #A1A1A1;
+  --text-tertiary: #737373;
+  --border-primary: #262626;
+  --border-secondary: #404040;
+  --accent: #FFFFFF;
+  --accent-hover: #E5E7EB;
+  --accent-subtle: rgba(255, 255, 255, 0.05);
+}
+
+* {
+  font-family: 'Geist', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+}
+
+code, pre, .font-mono {
+  font-family: 'Geist Mono', ui-monospace, SFMono-Regular, monospace;
 }
 
 body {
-  color: var(--foreground);
-  background: var(--background);
+  color: var(--text-primary);
+  background: var(--bg-primary);
+  font-size: 14px;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
+
+/* Typography */
+h1 { font-size: 32px; font-weight: 600; letter-spacing: -0.01em; }
+h1.hero { font-size: 48px; }
+h2 { font-size: 24px; font-weight: 600; letter-spacing: -0.01em; }
+h3 { font-size: 20px; font-weight: 500; letter-spacing: -0.01em; }
+.text-small { font-size: 13px; }
+.text-xs { font-size: 12px; }
+.uppercase { letter-spacing: 0.04em; }
 
 /* Custom scrollbar */
 ::-webkit-scrollbar {
@@ -23,16 +76,16 @@ body {
 }
 
 ::-webkit-scrollbar-track {
-  background: #1f2937;
+  background: var(--bg-secondary);
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #4b5563;
+  background: var(--border-secondary);
   border-radius: 4px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #6b7280;
+  background: var(--text-tertiary);
 }
 
 /* ============================================

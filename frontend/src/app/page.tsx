@@ -35,18 +35,21 @@ import {
 /** Connection status badge */
 function ConnectionBadge({ status }: { status: ConnectionStatus }) {
   const statusConfig: Record<ConnectionStatus, { color: string; label: string }> = {
-    disconnected: { color: 'bg-gray-500', label: 'Disconnected' },
-    connecting: { color: 'bg-yellow-500 animate-pulse', label: 'Connecting...' },
-    connected: { color: 'bg-green-500', label: 'Connected' },
-    error: { color: 'bg-red-500', label: 'Error' },
+    disconnected: { color: 'var(--text-tertiary)', label: 'Disconnected' },
+    connecting: { color: 'var(--warning)', label: 'Connecting...' },
+    connected: { color: 'var(--success)', label: 'Connected' },
+    error: { color: 'var(--danger)', label: 'Error' },
   };
 
   const { color, label } = statusConfig[status];
 
   return (
     <div className="flex items-center gap-2">
-      <div className={`h-2 w-2 rounded-full ${color}`} />
-      <span className="text-sm text-gray-400">{label}</span>
+      <div 
+        className={`h-2 w-2 rounded-full ${status === 'connecting' ? 'animate-pulse' : ''}`} 
+        style={{ background: color }}
+      />
+      <span className="text-sm" style={{ color: 'var(--text-tertiary)' }}>{label}</span>
     </div>
   );
 }
@@ -66,21 +69,21 @@ function RiskBadge({ level }: { level: RiskLevel }) {
 /** Urgency score bar visualization */
 function UrgencyBar({ score }: { score: number }) {
   // Color based on score
-  let barColor = 'bg-green-500';
-  if (score >= 70) barColor = 'bg-red-500';
-  else if (score >= 45) barColor = 'bg-orange-500';
-  else if (score >= 25) barColor = 'bg-yellow-500';
+  let barColor = 'var(--success)';
+  if (score >= 70) barColor = 'var(--danger)';
+  else if (score >= 45) barColor = 'var(--warning)';
+  else if (score >= 25) barColor = '#EAB308';
 
   return (
     <div className="w-full">
       <div className="flex justify-between text-xs mb-1">
-        <span className="text-gray-400">Urgency</span>
-        <span className="font-mono font-bold text-white">{score}</span>
+        <span style={{ color: 'var(--text-tertiary)' }}>Urgency</span>
+        <span className="font-mono font-bold">{score}</span>
       </div>
-      <div className="h-2 bg-gray-700 rounded-full overflow-hidden">
+      <div className="h-2 rounded-full overflow-hidden" style={{ background: 'var(--bg-tertiary)' }}>
         <div
-          className={`h-full ${barColor} transition-all duration-300`}
-          style={{ width: `${score}%` }}
+          className="h-full transition-all duration-300"
+          style={{ width: `${score}%`, background: barColor }}
         />
       </div>
     </div>
@@ -91,8 +94,11 @@ function UrgencyBar({ score }: { score: number }) {
 function CurrentTriagePanel({ triage }: { triage: TriageSnapshot | null }) {
   if (!triage) {
     return (
-      <div className="rounded-lg border border-gray-700 bg-gray-800/30 p-6">
-        <div className="text-center text-gray-500">
+      <div 
+        className="rounded-lg p-6"
+        style={{ background: 'var(--bg-secondary)', border: '1px solid var(--border-primary)' }}
+      >
+        <div className="text-center" style={{ color: 'var(--text-tertiary)' }}>
           <p className="text-lg mb-2">No triage results yet</p>
           <p className="text-sm">Send a message to begin triage analysis</p>
         </div>
@@ -101,35 +107,38 @@ function CurrentTriagePanel({ triage }: { triage: TriageSnapshot | null }) {
   }
 
   return (
-    <div className="rounded-lg border border-gray-700 bg-gray-800/30 p-6 space-y-6">
+    <div 
+      className="rounded-lg p-6 space-y-6"
+      style={{ background: 'var(--bg-secondary)', border: '1px solid var(--border-primary)' }}
+    >
       {/* Main metrics grid */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         {/* Risk Level */}
         <div className="space-y-2">
-          <div className="text-xs text-gray-400 uppercase tracking-wide">Risk Level</div>
+          <div className="text-xs uppercase tracking-wide" style={{ color: 'var(--text-tertiary)', letterSpacing: '0.04em' }}>Risk Level</div>
           <RiskBadge level={triage.risk_level} />
         </div>
 
         {/* Emotional State */}
         <div className="space-y-2">
-          <div className="text-xs text-gray-400 uppercase tracking-wide">Emotion</div>
-          <div className="text-lg font-semibold text-white">
+          <div className="text-xs uppercase tracking-wide" style={{ color: 'var(--text-tertiary)', letterSpacing: '0.04em' }}>Emotion</div>
+          <div className="text-lg font-semibold">
             {EMOTIONAL_STATE_LABELS[triage.emotional_state]}
           </div>
         </div>
 
         {/* Recommended Action */}
         <div className="space-y-2">
-          <div className="text-xs text-gray-400 uppercase tracking-wide">Action</div>
-          <div className="text-sm font-medium text-blue-400">
+          <div className="text-xs uppercase tracking-wide" style={{ color: 'var(--text-tertiary)', letterSpacing: '0.04em' }}>Action</div>
+          <div className="text-sm font-medium" style={{ color: 'var(--info)' }}>
             {ACTION_LABELS[triage.recommended_action]}
           </div>
         </div>
 
         {/* Confidence */}
         <div className="space-y-2">
-          <div className="text-xs text-gray-400 uppercase tracking-wide">Confidence</div>
-          <div className="text-lg font-semibold text-white">
+          <div className="text-xs uppercase tracking-wide" style={{ color: 'var(--text-tertiary)', letterSpacing: '0.04em' }}>Confidence</div>
+          <div className="text-lg font-semibold">
             {Math.round(triage.confidence * 100)}%
           </div>
         </div>
@@ -140,17 +149,17 @@ function CurrentTriagePanel({ triage }: { triage: TriageSnapshot | null }) {
 
       {/* Explanation */}
       {triage.explanation?.summary && (
-        <div className="pt-4 border-t border-gray-700">
-          <div className="text-xs text-gray-400 uppercase tracking-wide mb-2">
+        <div className="pt-4" style={{ borderTop: '1px solid var(--border-primary)' }}>
+          <div className="text-xs uppercase tracking-wide mb-2" style={{ color: 'var(--text-tertiary)', letterSpacing: '0.04em' }}>
             Explanation
           </div>
-          <p className="text-sm text-gray-300">{triage.explanation.summary}</p>
+          <p className="text-sm" style={{ color: 'var(--text-secondary)' }}>{triage.explanation.summary}</p>
         </div>
       )}
 
       {/* Processing time (debug info) */}
       {triage.processing_time_ms && (
-        <div className="text-xs text-gray-500 text-right">
+        <div className="text-xs text-right" style={{ color: 'var(--text-tertiary)' }}>
           Processed in {triage.processing_time_ms.toFixed(1)}ms
         </div>
       )}
@@ -158,11 +167,71 @@ function CurrentTriagePanel({ triage }: { triage: TriageSnapshot | null }) {
   );
 }
 
+/** Three-dot menu for history items */
+function HistoryItemMenu({ 
+  onDelete, 
+  onRename 
+}: { 
+  onDelete: () => void; 
+  onRename: () => void; 
+}) {
+  const [isOpen, setIsOpen] = useState(false);
+
+  return (
+    <div className="relative">
+      <button
+        onClick={() => setIsOpen(!isOpen)}
+        className="p-1 rounded hover:bg-gray-700 transition-colors"
+        style={{ color: 'var(--text-tertiary)' }}
+      >
+        <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+          <path d="M10 6a2 2 0 110-4 2 2 0 010 4zM10 12a2 2 0 110-4 2 2 0 010 4zM10 18a2 2 0 110-4 2 2 0 010 4z" />
+        </svg>
+      </button>
+      {isOpen && (
+        <>
+          <div 
+            className="fixed inset-0 z-10" 
+            onClick={() => setIsOpen(false)}
+          />
+          <div 
+            className="absolute right-0 mt-1 w-32 rounded-lg shadow-lg z-20 py-1"
+            style={{ background: 'var(--bg-secondary)', border: '1px solid var(--border-primary)' }}
+          >
+            <button
+              onClick={() => { onRename(); setIsOpen(false); }}
+              className="w-full text-left px-3 py-2 text-sm hover:bg-gray-700 transition-colors"
+              style={{ color: 'var(--text-primary)' }}
+            >
+              Rename
+            </button>
+            <button
+              onClick={() => { onDelete(); setIsOpen(false); }}
+              className="w-full text-left px-3 py-2 text-sm hover:bg-gray-700 transition-colors"
+              style={{ color: 'var(--danger)' }}
+            >
+              Delete
+            </button>
+          </div>
+        </>
+      )}
+    </div>
+  );
+}
+
 /** Triage history list */
-function HistoryPanel({ history }: { history: TriageHistoryEntry[] }) {
+function HistoryPanel({ 
+  history, 
+  onDeleteItem, 
+  onRenameItem 
+}: { 
+  history: TriageHistoryEntry[]; 
+  onDeleteItem: (id: string) => void;
+  onRenameItem: (id: string) => void;
+}) {
   if (history.length === 0) {
     return (
-      <div className="text-center text-gray-500 py-8">
+      <div className="text-center py-8" style={{ color: 'var(--text-tertiary)' }}>
         <p>No history yet</p>
       </div>
     );
@@ -173,21 +242,26 @@ function HistoryPanel({ history }: { history: TriageHistoryEntry[] }) {
       {history.map((entry) => (
         <div
           key={entry.id}
-          className="flex items-center justify-between p-3 rounded-lg bg-gray-800/50 border border-gray-700/50"
+          className="flex items-center justify-between p-3 rounded-lg"
+          style={{ background: 'var(--bg-tertiary)', border: '1px solid var(--border-primary)' }}
         >
           <div className="flex items-center gap-3">
             <RiskBadge level={entry.risk_level} />
-            <span className="text-sm text-gray-300">
+            <span className="text-sm" style={{ color: 'var(--text-secondary)' }}>
               {EMOTIONAL_STATE_LABELS[entry.emotional_state]}
             </span>
           </div>
           <div className="flex items-center gap-4">
-            <span className="text-sm font-mono text-gray-400">
+            <span className="text-sm font-mono" style={{ color: 'var(--text-tertiary)' }}>
               Score: {entry.urgency_score}
             </span>
-            <span className="text-xs text-gray-500">
+            <span className="text-xs" style={{ color: 'var(--text-tertiary)' }}>
               {new Date(entry.timestamp_ms).toLocaleTimeString()}
             </span>
+            <HistoryItemMenu 
+              onDelete={() => onDeleteItem(entry.id)}
+              onRename={() => onRenameItem(entry.id)}
+            />
           </div>
         </div>
       ))}
@@ -202,11 +276,38 @@ function HistoryPanel({ history }: { history: TriageHistoryEntry[] }) {
 export default function DashboardHome() {
   // Session state
   const [sessionId, setSessionId] = useState<string | null>(null);
+  const [sessionName, setSessionName] = useState<string>('');
+  const [showSessionModal, setShowSessionModal] = useState(false);
+  const [sessionNameInput, setSessionNameInput] = useState('');
   const [messageInput, setMessageInput] = useState('');
+  const [deletedItems, setDeletedItems] = useState<Set<string>>(new Set());
 
   // Generate a new session ID
   const generateSessionId = useCallback(() => {
     return crypto.randomUUID();
+  }, []);
+
+  // Persisted history state
+  const [persistedHistory, setPersistedHistory] = useState<TriageHistoryEntry[]>([]);
+
+  // Load persisted history on mount
+  useEffect(() => {
+    const saved = localStorage.getItem('triageHistory');
+    if (saved) {
+      try {
+        const parsed = JSON.parse(saved);
+        setPersistedHistory(parsed);
+        setDeletedItems(new Set(JSON.parse(localStorage.getItem('deletedItems') || '[]')));
+      } catch (e) {
+        console.error('Failed to parse saved history:', e);
+      }
+    }
+    const savedSession = localStorage.getItem('sessionName');
+    const savedSessionId = localStorage.getItem('sessionId');
+    if (savedSession && savedSessionId) {
+      setSessionName(savedSession);
+      setSessionId(savedSessionId);
+    }
   }, []);
 
   // WebSocket hook
@@ -230,6 +331,33 @@ export default function DashboardHome() {
     onTriageResult: (result) => console.log('Dashboard: New triage result:', result.risk_level),
     onAlert: (alert) => console.warn('Dashboard: Alert:', alert.message),
   });
+
+  // Merge persisted history with current session history and save
+  useEffect(() => {
+    if (triageHistory.length > 0) {
+      const merged = [...persistedHistory];
+      triageHistory.forEach(item => {
+        if (!merged.find(m => m.id === item.id)) {
+          merged.push(item);
+        }
+      });
+      setPersistedHistory(merged);
+      localStorage.setItem('triageHistory', JSON.stringify(merged));
+    }
+  }, [triageHistory]);
+
+  // Save deleted items to localStorage
+  useEffect(() => {
+    localStorage.setItem('deletedItems', JSON.stringify(Array.from(deletedItems)));
+  }, [deletedItems]);
+
+  // Save session info to localStorage
+  useEffect(() => {
+    if (sessionId && sessionName) {
+      localStorage.setItem('sessionId', sessionId);
+      localStorage.setItem('sessionName', sessionName);
+    }
+  }, [sessionId, sessionName]);
 
   // Audio stream hook
   const {
@@ -255,21 +383,60 @@ export default function DashboardHome() {
     }
   }, [connectionStatus, isRecording, stopRecording]);
 
-  // Start a new session
-  const handleStartSession = useCallback(() => {
+  // Show session name modal
+  const handleShowSessionModal = useCallback(() => {
+    setSessionNameInput('');
+    setShowSessionModal(true);
+  }, []);
+
+  // Confirm session start with name
+  const handleConfirmSession = useCallback(() => {
     const newSessionId = generateSessionId();
     setSessionId(newSessionId);
-    // Note: connection happens after state update, in useEffect via autoConnect
-    // For manual control, we connect explicitly after setting ID
+    setSessionName(sessionNameInput.trim() || `Session ${new Date().toLocaleTimeString()}`);
+    setShowSessionModal(false);
+    setDeletedItems(new Set());
     setTimeout(() => connect(), 0);
-  }, [generateSessionId, connect]);
+  }, [generateSessionId, sessionNameInput, connect]);
 
   // End current session
   const handleEndSession = useCallback(() => {
     disconnect();
     setSessionId(null);
+    setSessionName('');
     clearHistory();
+    setDeletedItems(new Set());
   }, [disconnect, clearHistory]);
+
+  // Delete history item (client-side only)
+  const handleDeleteItem = useCallback((id: string) => {
+    setDeletedItems(prev => {
+      const newSet = new Set(prev);
+      newSet.add(id);
+      return newSet;
+    });
+  }, []);
+
+  // Rename history item (placeholder - would need backend support)
+  const handleRenameItem = useCallback((id: string) => {
+    const newName = prompt('Enter new name for this entry:');
+    if (newName) {
+      console.log('Rename item', id, 'to', newName);
+      // In a real implementation, this would update the entry
+    }
+  }, []);
+
+  // Clear all history
+  const handleClearAll = useCallback(() => {
+    clearHistory();
+    setPersistedHistory([]);
+    setDeletedItems(new Set());
+    localStorage.removeItem('triageHistory');
+    localStorage.removeItem('deletedItems');
+  }, [clearHistory]);
+
+  // Filter out deleted items from persisted history
+  const filteredHistory = persistedHistory.filter(entry => !deletedItems.has(entry.id));
 
   // Send text message
   const handleSendMessage = useCallback(
@@ -292,14 +459,16 @@ export default function DashboardHome() {
   const isConnecting = connectionStatus === 'connecting';
 
   return (
-    <div className="container mx-auto px-4 py-8 max-w-7xl">
+    <div className="max-w-7xl mx-auto">
       {/* SAFETY DISCLAIMER */}
-      <div className="mb-6 p-4 rounded-lg border-2 border-yellow-600 bg-yellow-900/30 text-yellow-200">
+      <div 
+        className="mb-8 p-4 rounded-lg"
+        style={{ background: 'var(--bg-tertiary)', border: '1px solid var(--warning)' }}
+      >
         <div className="flex items-start gap-3">
-          <span className="text-2xl">⚠️</span>
           <div className="text-sm">
-            <p className="font-bold mb-1">RESEARCH SIMULATION ONLY</p>
-            <p>
+            <p className="font-bold mb-1" style={{ color: 'var(--warning)' }}>RESEARCH SIMULATION ONLY</p>
+            <p style={{ color: 'var(--text-secondary)' }}>
               This is an internal lab tool for AI research — NOT a medical device. 
               Do NOT use for real crisis intervention. 
               If you or someone you know is in crisis, please call your local emergency services 
@@ -313,17 +482,17 @@ export default function DashboardHome() {
       <div className="mb-8">
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-3xl font-bold text-white">CrisisTriage Lab</h1>
-            <p className="text-gray-400 mt-1">
+            <h1 style={{ fontSize: '32px', fontWeight: 600, letterSpacing: '-0.01em' }}>CrisisTriage Lab</h1>
+            <p style={{ color: 'var(--text-secondary)', marginTop: '4px' }}>
               Real-time triage simulation{' '}
-              <span className="text-yellow-500 text-sm">(research-only)</span>
+              <span style={{ color: 'var(--warning)', fontSize: '13px' }}>(research-only)</span>
             </p>
           </div>
           <div className="flex items-center gap-4">
             <ConnectionBadge status={connectionStatus} />
             {!sessionId ? (
               <button
-                onClick={handleStartSession}
+                onClick={handleShowSessionModal}
                 className="rounded-lg px-4 py-2 text-sm font-medium bg-blue-600 hover:bg-blue-700 text-white transition-colors"
               >
                 Start Session
@@ -340,10 +509,55 @@ export default function DashboardHome() {
           </div>
         </div>
 
-        {/* Session ID display */}
+        {/* Session name modal */}
+        {showSessionModal && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
+            <div 
+              className="rounded-lg p-6 w-full max-w-md"
+              style={{ background: 'var(--bg-primary)', border: '1px solid var(--border-primary)' }}
+            >
+              <h3 style={{ fontSize: '18px', fontWeight: 600, marginBottom: '16px' }}>New Session</h3>
+              <input
+                type="text"
+                placeholder="Enter session name (optional)"
+                value={sessionNameInput}
+                onChange={(e) => setSessionNameInput(e.target.value)}
+                onKeyDown={(e) => e.key === 'Enter' && handleConfirmSession()}
+                className="w-full px-3 py-2 rounded-lg mb-4"
+                style={{ 
+                  background: 'var(--bg-secondary)', 
+                  border: '1px solid var(--border-primary)',
+                  color: 'var(--text-primary)'
+                }}
+                autoFocus
+              />
+              <div className="flex gap-3 justify-end">
+                <button
+                  onClick={() => setShowSessionModal(false)}
+                  className="px-4 py-2 rounded-lg text-sm"
+                  style={{ background: 'var(--bg-tertiary)', color: 'var(--text-secondary)' }}
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleConfirmSession}
+                  className="px-4 py-2 rounded-lg text-sm font-medium"
+                  style={{ background: 'var(--accent)', color: 'var(--bg-primary)' }}
+                >
+                  Start
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Session display */}
         {sessionId && (
-          <div className="mt-4 text-sm text-gray-500">
-            Session: <code className="text-gray-400 bg-gray-800 px-2 py-1 rounded">{sessionId}</code>
+          <div className="mt-4 text-sm" style={{ color: 'var(--text-tertiary)' }}>
+            Session: <strong style={{ color: 'var(--text-primary)' }}>{sessionName}</strong>
+            <code className="ml-2 px-2 py-1 rounded text-xs" style={{ background: 'var(--bg-tertiary)', color: 'var(--text-tertiary)' }}>
+              {sessionId.slice(0, 8)}...
+            </code>
           </div>
         )}
 
@@ -376,16 +590,22 @@ export default function DashboardHome() {
       </div>
 
       {/* Main Grid */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
         {/* Left Panel: Input & Session */}
         <div className="space-y-6">
           {/* Microphone Section */}
-          <div className="rounded-lg border border-gray-700 bg-gray-800/30 p-6">
-            <h2 className="text-lg font-semibold text-white mb-4">Microphone Input</h2>
+          <div 
+            className="rounded-lg p-6"
+            style={{ background: 'var(--bg-secondary)', border: '1px solid var(--border-primary)' }}
+          >
+            <h2 style={{ fontSize: '16px', fontWeight: 600, marginBottom: '16px' }}>Microphone Input</h2>
             
             {/* Audio error display */}
             {audioError && (
-              <div className="mb-4 p-3 rounded-lg bg-red-900/30 border border-red-700 text-red-400 text-sm">
+              <div 
+                className="mb-4 p-3 rounded-lg text-sm"
+                style={{ background: 'var(--bg-tertiary)', border: '1px solid var(--danger)', color: 'var(--danger)' }}
+              >
                 {audioError}
               </div>
             )}
@@ -427,19 +647,20 @@ export default function DashboardHome() {
 
             {/* Recording status */}
             {isRecording && (
-              <div className="mt-4 flex items-center gap-2 text-green-400 text-sm">
-                <div className="w-2 h-2 rounded-full bg-red-500 animate-pulse" />
+              <div className="mt-4 flex items-center gap-2 text-sm" style={{ color: 'var(--success)' }}>
+                <div className="w-2 h-2 rounded-full animate-pulse" style={{ background: 'var(--danger)' }} />
                 Recording... Audio is being streamed to the backend.
               </div>
             )}
 
             {/* Permission status */}
             {hasPermission === false && (
-              <div className="mt-4 text-sm text-gray-400">
+              <div className="mt-4 text-sm" style={{ color: 'var(--text-tertiary)' }}>
                 Microphone access denied. 
                 <button 
                   onClick={requestPermission}
-                  className="ml-2 text-blue-400 hover:text-blue-300 underline"
+                  className="ml-2 underline"
+                  style={{ color: 'var(--info)' }}
                 >
                   Request permission
                 </button>
@@ -447,23 +668,26 @@ export default function DashboardHome() {
             )}
 
             {!isConnected && (
-              <p className="mt-4 text-sm text-gray-500">
+              <p className="mt-4 text-sm" style={{ color: 'var(--text-tertiary)' }}>
                 Start a session to enable microphone input.
               </p>
             )}
 
-            <p className="mt-4 text-xs text-gray-500">
+            <p className="mt-4 text-xs" style={{ color: 'var(--text-tertiary)' }}>
               Audio is processed locally. No data is sent to external APIs.
             </p>
           </div>
 
           {/* Live Transcript */}
           {transcripts.length > 0 && (
-            <div className="rounded-lg border border-gray-700 bg-gray-800/30 p-6">
-              <h2 className="text-lg font-semibold text-white mb-4">Live Transcript</h2>
+            <div 
+              className="rounded-lg p-6"
+              style={{ background: 'var(--bg-secondary)', border: '1px solid var(--border-primary)' }}
+            >
+              <h2 style={{ fontSize: '16px', fontWeight: 600, marginBottom: '16px' }}>Live Transcript</h2>
               <div className="max-h-32 overflow-y-auto space-y-2">
                 {transcripts.slice(-5).map((t, idx) => (
-                  <p key={idx} className="text-sm text-gray-300">
+                  <p key={idx} className="text-sm" style={{ color: 'var(--text-secondary)' }}>
                     {t.text}
                   </p>
                 ))}
@@ -472,8 +696,11 @@ export default function DashboardHome() {
           )}
 
           {/* Message Input */}
-          <div className="rounded-lg border border-gray-700 bg-gray-800/30 p-6">
-            <h2 className="text-lg font-semibold text-white mb-4">Text Input</h2>
+          <div 
+            className="rounded-lg p-6"
+            style={{ background: 'var(--bg-secondary)', border: '1px solid var(--border-primary)' }}
+          >
+            <h2 style={{ fontSize: '16px', fontWeight: 600, marginBottom: '16px' }}>Text Input</h2>
             <form onSubmit={handleSendMessage} className="space-y-4">
               <textarea
                 value={messageInput}
@@ -485,13 +712,19 @@ export default function DashboardHome() {
                 }
                 disabled={!isConnected}
                 rows={4}
-                className="w-full px-4 py-3 rounded-lg bg-gray-900 border border-gray-700 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:opacity-50 disabled:cursor-not-allowed resize-none"
+                className="w-full px-4 py-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed resize-none"
+                style={{ 
+                  background: 'var(--bg-tertiary)', 
+                  border: '1px solid var(--border-primary)',
+                  color: 'var(--text-primary)'
+                }}
               />
               <div className="flex gap-3">
                 <button
                   type="submit"
                   disabled={!isConnected || !messageInput.trim()}
-                  className="flex-1 rounded-lg px-4 py-2 text-sm font-medium bg-blue-600 hover:bg-blue-700 text-white transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="flex-1 rounded-lg px-4 py-2 text-sm font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                  style={{ background: 'var(--accent)', color: 'var(--bg-primary)' }}
                 >
                   Send for Triage
                 </button>
@@ -499,7 +732,8 @@ export default function DashboardHome() {
                   type="button"
                   onClick={handleSimulateAudio}
                   disabled={!isConnected}
-                  className="rounded-lg px-4 py-2 text-sm font-medium bg-gray-700 hover:bg-gray-600 text-gray-300 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="rounded-lg px-4 py-2 text-sm font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                  style={{ background: 'var(--bg-tertiary)', color: 'var(--text-secondary)', border: '1px solid var(--border-primary)' }}
                   title="Send simulated audio data for testing"
                 >
                   Simulate Audio
@@ -510,8 +744,11 @@ export default function DashboardHome() {
 
           {/* Quick Test Messages */}
           {isConnected && (
-            <div className="rounded-lg border border-gray-700 bg-gray-800/30 p-6">
-              <h3 className="text-sm font-medium text-gray-400 mb-3">Quick Test Messages</h3>
+            <div 
+              className="rounded-lg p-6"
+              style={{ background: 'var(--bg-secondary)', border: '1px solid var(--border-primary)' }}
+            >
+              <h3 className="text-sm font-medium mb-3" style={{ color: 'var(--text-tertiary)' }}>Quick Test Messages</h3>
               <div className="flex flex-wrap gap-2">
                 {[
                   "I've been feeling overwhelmed lately",
@@ -522,7 +759,8 @@ export default function DashboardHome() {
                   <button
                     key={idx}
                     onClick={() => sendText(msg)}
-                    className="text-xs px-3 py-1.5 rounded-full bg-gray-700 hover:bg-gray-600 text-gray-300 transition-colors"
+                    className="text-xs px-3 py-1.5 rounded-full transition-colors"
+                    style={{ background: 'var(--bg-tertiary)', color: 'var(--text-secondary)', border: '1px solid var(--border-primary)' }}
                   >
                     {msg.length > 30 ? msg.slice(0, 30) + '...' : msg}
                   </button>
@@ -532,14 +770,38 @@ export default function DashboardHome() {
           )}
 
           {/* History Panel */}
-          <div className="rounded-lg border border-gray-700 bg-gray-800/30 p-6">
+          <div 
+            className="rounded-lg p-6"
+            style={{ background: 'var(--bg-secondary)', border: '1px solid var(--border-primary)' }}
+          >
             <div className="flex items-center justify-between mb-4">
-              <h2 className="text-lg font-semibold text-white">History</h2>
-              {triageHistory.length > 0 && (
-                <span className="text-xs text-gray-500">{triageHistory.length} results</span>
-              )}
+              <h2 style={{ fontSize: '16px', fontWeight: 600 }}>History</h2>
+              <div className="flex items-center gap-3">
+                {filteredHistory.length > 0 && (
+                  <span style={{ fontSize: '12px', color: 'var(--text-tertiary)' }}>
+                    {filteredHistory.length} results
+                  </span>
+                )}
+                {filteredHistory.length > 0 && (
+                  <button
+                    onClick={handleClearAll}
+                    className="px-2 py-1 rounded text-xs transition-colors"
+                    style={{ 
+                      background: 'var(--bg-tertiary)', 
+                      color: 'var(--danger)',
+                      border: '1px solid var(--border-primary)'
+                    }}
+                  >
+                    Clear All
+                  </button>
+                )}
+              </div>
             </div>
-            <HistoryPanel history={triageHistory} />
+            <HistoryPanel 
+              history={filteredHistory} 
+              onDeleteItem={handleDeleteItem}
+              onRenameItem={handleRenameItem}
+            />
           </div>
         </div>
 
@@ -547,42 +809,51 @@ export default function DashboardHome() {
         <div className="space-y-6">
           {/* Current Triage Result */}
           <div>
-            <h2 className="text-lg font-semibold text-white mb-4">Latest Triage Result</h2>
+            <h2 style={{ fontSize: '16px', fontWeight: 600, marginBottom: '16px' }}>Latest Triage Result</h2>
             <CurrentTriagePanel triage={currentTriage} />
           </div>
 
           {/* Feature Attribution (Explanation Details) */}
           {currentTriage?.explanation && (
-            <div className="rounded-lg border border-gray-700 bg-gray-800/30 p-6">
-              <h2 className="text-lg font-semibold text-white mb-4">Feature Attribution</h2>
+            <div 
+              className="rounded-lg p-6"
+              style={{ background: 'var(--bg-secondary)', border: '1px solid var(--border-primary)' }}
+            >
+              <h2 style={{ fontSize: '16px', fontWeight: 600, marginBottom: '16px' }}>Feature Attribution</h2>
               <div className="grid grid-cols-2 gap-6">
                 {/* Text Features */}
                 <div>
-                  <h3 className="text-xs text-gray-400 uppercase tracking-wide mb-3">
+                  <h3 
+                    className="text-xs uppercase tracking-wide mb-3"
+                    style={{ color: 'var(--text-tertiary)', letterSpacing: '0.04em' }}
+                  >
                     Text Features
                   </h3>
                   {currentTriage.explanation.text_features?.length > 0 ? (
                     <ul className="space-y-2">
                       {currentTriage.explanation.text_features.slice(0, 5).map((f, idx) => (
                         <li key={idx} className="text-sm">
-                          <span className="text-gray-300">{f.feature_name || 'keyword'}</span>
+                          <span style={{ color: 'var(--text-secondary)' }}>{f.feature_name || 'keyword'}</span>
                           {f.value && (
-                            <span className="text-gray-500 ml-2">({String(f.value)})</span>
+                            <span className="ml-2" style={{ color: 'var(--text-tertiary)' }}>({String(f.value)})</span>
                           )}
-                          <span className="text-blue-400 ml-2 font-mono text-xs">
+                          <span className="ml-2 font-mono text-xs" style={{ color: 'var(--info)' }}>
                             +{(f.contribution * 100).toFixed(0)}%
                           </span>
                         </li>
                       ))}
                     </ul>
                   ) : (
-                    <p className="text-sm text-gray-500">No text features</p>
+                    <p className="text-sm" style={{ color: 'var(--text-tertiary)' }}>No text features</p>
                   )}
                 </div>
 
                 {/* Prosody Features */}
                 <div>
-                  <h3 className="text-xs text-gray-400 uppercase tracking-wide mb-3">
+                  <h3 
+                    className="text-xs uppercase tracking-wide mb-3"
+                    style={{ color: 'var(--text-tertiary)', letterSpacing: '0.04em' }}
+                  >
                     Voice Features
                   </h3>
                   {currentTriage.explanation.prosody_features?.length > 0 ? (

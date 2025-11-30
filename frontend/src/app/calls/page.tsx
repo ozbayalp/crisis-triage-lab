@@ -6,7 +6,7 @@ import { useState, useEffect, useCallback } from 'react';
  * CrisisTriage AI - Phone Calls Dashboard
  * 
  * Displays active and recent phone call sessions.
- * Allows simulating incoming calls for testing.
+ * Phone integration requires Twilio configuration.
  */
 
 const API_BASE = process.env.NEXT_PUBLIC_BACKEND_HTTP_URL || 'http://localhost:8000';
@@ -39,7 +39,7 @@ export default function CallsPage() {
   const [telephonyStatus, setTelephonyStatus] = useState<TelephonyStatus | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [simulating, setSimulating] = useState(false);
+  const [connectEnabled, setConnectEnabled] = useState(false);
 
   // Fetch telephony status
   const fetchStatus = useCallback(async () => {
@@ -85,28 +85,9 @@ export default function CallsPage() {
     }
   }, []);
 
-  // Simulate incoming call
-  const simulateCall = async () => {
-    setSimulating(true);
-    try {
-      const response = await fetch(`${API_BASE}/api/telephony/simulate/incoming`, {
-        method: 'POST',
-      });
-      if (response.ok) {
-        const data = await response.json();
-        console.log('Simulated call:', data);
-        // Refresh calls
-        await fetchActiveCalls();
-      } else {
-        const errData = await response.json();
-        alert(`Failed to simulate call: ${errData.detail || response.statusText}`);
-      }
-    } catch (err) {
-      console.error('Failed to simulate call:', err);
-      alert('Failed to simulate call. Check console for details.');
-    } finally {
-      setSimulating(false);
-    }
+  // Toggle connect call panel
+  const toggleConnect = () => {
+    setConnectEnabled(!connectEnabled);
   };
 
   // Initial load and polling
@@ -153,39 +134,49 @@ export default function CallsPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-900 text-white p-6">
-      <div className="max-w-6xl mx-auto">
+    <div style={{ background: 'var(--bg-primary)', color: 'var(--text-primary)', minHeight: '100vh' }}>
+      <div className="py-8">
         {/* Header */}
-        <div className="flex items-center justify-between mb-8">
+        <div className="flex items-center justify-between mb-12">
           <div>
-            <h1 className="text-3xl font-bold">📞 Phone Calls</h1>
-            <p className="text-gray-400 mt-1">
+            <h1 style={{ fontSize: '32px', fontWeight: 600, letterSpacing: '-0.01em' }}>Phone Calls</h1>
+            <p style={{ color: 'var(--text-secondary)', marginTop: '4px', fontSize: '14px' }}>
               Monitor and manage phone call triage sessions
             </p>
           </div>
           <a 
             href="/"
-            className="px-4 py-2 rounded bg-gray-700 hover:bg-gray-600 transition"
+            className="px-4 py-2 rounded-lg text-sm font-medium transition-colors"
+            style={{ 
+              background: 'var(--accent)', 
+              color: 'var(--bg-primary)',
+            }}
           >
-            ← Back to Dashboard
+            Back to Dashboard
           </a>
         </div>
 
         {/* Error State */}
         {error && (
-          <div className="bg-red-900/50 border border-red-700 rounded-lg p-4 mb-6">
-            <p className="text-red-300">{error}</p>
-            <p className="text-sm text-gray-400 mt-2">
-              To enable telephony, set <code className="bg-gray-800 px-1 rounded">ENABLE_TELEPHONY_INTEGRATION=true</code> in your backend .env file.
+          <div 
+            className="rounded-lg p-4 mb-8"
+            style={{ background: 'var(--danger)', opacity: 0.1, border: '1px solid var(--danger)' }}
+          >
+            <p style={{ color: 'var(--danger)' }}>{error}</p>
+            <p style={{ fontSize: '13px', color: 'var(--text-tertiary)', marginTop: '8px' }}>
+              To enable telephony, set <code style={{ background: 'var(--bg-tertiary)', padding: '2px 4px', borderRadius: '4px' }}>ENABLE_TELEPHONY_INTEGRATION=true</code> in your backend .env file.
             </p>
           </div>
         )}
 
         {/* Loading State */}
         {loading && (
-          <div className="text-center py-12">
-            <div className="animate-spin w-8 h-8 border-2 border-blue-500 border-t-transparent rounded-full mx-auto"></div>
-            <p className="text-gray-400 mt-4">Loading telephony status...</p>
+          <div className="text-center py-16">
+            <div 
+              className="animate-spin w-8 h-8 border-2 border-t-transparent rounded-full mx-auto"
+              style={{ borderColor: 'var(--accent)', borderTopColor: 'transparent' }}
+            ></div>
+            <p style={{ color: 'var(--text-tertiary)', marginTop: '16px' }}>Loading telephony status...</p>
           </div>
         )}
 
@@ -193,48 +184,91 @@ export default function CallsPage() {
         {telephonyStatus && !loading && (
           <>
             {/* Status Bar */}
-            <div className="bg-gray-800 rounded-lg p-4 mb-6 flex items-center justify-between">
-              <div className="flex items-center gap-6">
+            <div 
+              className="rounded-lg p-5 mb-8 flex items-center justify-between"
+              style={{ background: 'var(--bg-secondary)', border: '1px solid var(--border-primary)' }}
+            >
+              <div className="flex items-center gap-8">
                 <div>
-                  <span className="text-gray-400 text-sm">Status</span>
-                  <div className="flex items-center gap-2">
-                    <span className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></span>
-                    <span className="font-medium text-green-400">Enabled</span>
+                  <span style={{ color: 'var(--text-tertiary)', fontSize: '12px', textTransform: 'uppercase', letterSpacing: '0.04em' }}>Status</span>
+                  <div className="flex items-center gap-2 mt-1">
+                    <span className="w-2 h-2 rounded-full" style={{ background: 'var(--success)' }}></span>
+                    <span className="font-medium" style={{ color: 'var(--success)' }}>Enabled</span>
                   </div>
                 </div>
                 <div>
-                  <span className="text-gray-400 text-sm">Provider</span>
-                  <p className="font-medium">{telephonyStatus.provider}</p>
+                  <span style={{ color: 'var(--text-tertiary)', fontSize: '12px', textTransform: 'uppercase', letterSpacing: '0.04em' }}>Provider</span>
+                  <p className="font-medium mt-1">{telephonyStatus.provider === 'generic' ? 'Unknown' : telephonyStatus.provider}</p>
                 </div>
                 <div>
-                  <span className="text-gray-400 text-sm">Active Calls</span>
-                  <p className="font-medium text-xl">{activeCalls.length}</p>
+                  <span style={{ color: 'var(--text-tertiary)', fontSize: '12px', textTransform: 'uppercase', letterSpacing: '0.04em' }}>Active Calls</span>
+                  <p className="font-medium text-xl mt-1">{activeCalls.length}</p>
                 </div>
                 <div>
-                  <span className="text-gray-400 text-sm">Max Concurrent</span>
-                  <p className="font-medium">{telephonyStatus.max_concurrent_calls}</p>
+                  <span style={{ color: 'var(--text-tertiary)', fontSize: '12px', textTransform: 'uppercase', letterSpacing: '0.04em' }}>Max Concurrent</span>
+                  <p className="font-medium mt-1">{telephonyStatus.max_concurrent_calls}</p>
                 </div>
               </div>
               <button
-                onClick={simulateCall}
-                disabled={simulating}
-                className="px-4 py-2 bg-blue-600 hover:bg-blue-500 rounded-lg font-medium disabled:opacity-50 disabled:cursor-not-allowed transition"
+                onClick={toggleConnect}
+                className="px-4 py-2 rounded-lg font-medium text-sm transition-colors"
+                style={{ 
+                  background: connectEnabled ? 'var(--danger)' : 'var(--success)', 
+                  color: '#FFFFFF' 
+                }}
               >
-                {simulating ? 'Simulating...' : '📱 Simulate Incoming Call'}
+                {connectEnabled ? 'Disconnect' : 'Connect Call'}
               </button>
             </div>
 
+            {/* Twilio Notice - Shows when Connect is toggled */}
+            {connectEnabled && (
+              <div 
+                className="rounded-lg p-6 mb-8"
+                style={{ background: 'var(--bg-tertiary)', border: '1px solid var(--warning)' }}
+              >
+                <h3 style={{ fontSize: '16px', fontWeight: 600, color: 'var(--warning)', marginBottom: '8px' }}>
+                  Phone Call Integration Unavailable
+                </h3>
+                <p style={{ color: 'var(--text-secondary)', marginBottom: '12px', fontSize: '14px' }}>
+                  Real phone call integration requires a <strong>Twilio account</strong> with 
+                  an active subscription. Twilio is a paid cloud communications platform that 
+                  provides programmable voice, SMS, and video APIs.
+                </p>
+                <div 
+                  className="rounded p-4 mb-3"
+                  style={{ background: 'var(--bg-secondary)' }}
+                >
+                  <p style={{ fontSize: '13px', color: 'var(--text-tertiary)', marginBottom: '8px' }}>To enable phone call functionality:</p>
+                  <ol style={{ fontSize: '13px', color: 'var(--text-secondary)' }} className="list-decimal list-inside space-y-1">
+                    <li>Sign up for a Twilio account at <span style={{ color: 'var(--info)' }}>twilio.com</span></li>
+                    <li>Purchase a phone number (~$1/month)</li>
+                    <li>Add your Twilio credentials to the backend <code style={{ background: 'var(--bg-tertiary)', padding: '2px 6px', borderRadius: '4px' }}>.env</code> file</li>
+                    <li>Configure the webhook URL to point to this server</li>
+                  </ol>
+                </div>
+                <p style={{ fontSize: '13px', color: 'var(--text-tertiary)' }}>
+                  The backend telephony infrastructure is fully implemented and ready to receive 
+                  calls once Twilio is configured. This includes real-time audio streaming, 
+                  transcription, and triage analysis.
+                </p>
+              </div>
+            )}
+
             {/* Active Calls */}
-            <div className="mb-8">
-              <h2 className="text-xl font-semibold mb-4 flex items-center gap-2">
-                <span className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></span>
+            <div className="mb-12">
+              <h2 style={{ fontSize: '20px', fontWeight: 600, marginBottom: '16px' }} className="flex items-center gap-2">
+                <span className="w-2 h-2 rounded-full" style={{ background: 'var(--success)' }}></span>
                 Active Calls ({activeCalls.length})
               </h2>
               {activeCalls.length === 0 ? (
-                <div className="bg-gray-800/50 rounded-lg p-8 text-center">
-                  <p className="text-gray-400">No active calls</p>
-                  <p className="text-sm text-gray-500 mt-2">
-                    Click "Simulate Incoming Call" to test the telephony integration
+                <div 
+                  className="rounded-lg p-12 text-center"
+                  style={{ background: 'var(--bg-secondary)', border: '1px solid var(--border-primary)' }}
+                >
+                  <p style={{ color: 'var(--text-secondary)' }}>No active calls</p>
+                  <p style={{ fontSize: '13px', color: 'var(--text-tertiary)', marginTop: '8px' }}>
+                    Click "Connect Call" above to learn about phone integration
                   </p>
                 </div>
               ) : (
@@ -283,43 +317,59 @@ export default function CallsPage() {
 
             {/* Recent Calls */}
             <div>
-              <h2 className="text-xl font-semibold mb-4">Recent Calls</h2>
+              <h2 style={{ fontSize: '20px', fontWeight: 600, marginBottom: '16px' }} className="flex items-center gap-2">
+                <span className="w-2 h-2 rounded-full" style={{ background: 'var(--danger)' }}></span>
+                Recent Calls
+              </h2>
               {recentCalls.length === 0 ? (
-                <div className="bg-gray-800/50 rounded-lg p-8 text-center">
-                  <p className="text-gray-400">No recent calls</p>
+                <div 
+                  className="rounded-lg p-12 text-center"
+                  style={{ background: 'var(--bg-secondary)', border: '1px solid var(--border-primary)' }}
+                >
+                  <p style={{ color: 'var(--text-secondary)' }}>No recent calls</p>
                 </div>
               ) : (
-                <div className="bg-gray-800 rounded-lg overflow-hidden">
+                <div 
+                  className="rounded-lg overflow-hidden"
+                  style={{ background: 'var(--bg-secondary)', border: '1px solid var(--border-primary)' }}
+                >
                   <table className="w-full">
-                    <thead className="bg-gray-700">
+                    <thead style={{ background: 'var(--bg-tertiary)' }}>
                       <tr>
-                        <th className="text-left p-3 font-medium">Call ID</th>
-                        <th className="text-left p-3 font-medium">From</th>
-                        <th className="text-left p-3 font-medium">Status</th>
-                        <th className="text-left p-3 font-medium">Duration</th>
-                        <th className="text-left p-3 font-medium">Events</th>
-                        <th className="text-left p-3 font-medium">Risk</th>
-                        <th className="text-left p-3 font-medium">Time</th>
+                        <th className="text-left p-3" style={{ fontSize: '12px', fontWeight: 500, color: 'var(--text-tertiary)', textTransform: 'uppercase', letterSpacing: '0.04em' }}>Call ID</th>
+                        <th className="text-left p-3" style={{ fontSize: '12px', fontWeight: 500, color: 'var(--text-tertiary)', textTransform: 'uppercase', letterSpacing: '0.04em' }}>From</th>
+                        <th className="text-left p-3" style={{ fontSize: '12px', fontWeight: 500, color: 'var(--text-tertiary)', textTransform: 'uppercase', letterSpacing: '0.04em' }}>Status</th>
+                        <th className="text-left p-3" style={{ fontSize: '12px', fontWeight: 500, color: 'var(--text-tertiary)', textTransform: 'uppercase', letterSpacing: '0.04em' }}>Duration</th>
+                        <th className="text-left p-3" style={{ fontSize: '12px', fontWeight: 500, color: 'var(--text-tertiary)', textTransform: 'uppercase', letterSpacing: '0.04em' }}>Events</th>
+                        <th className="text-left p-3" style={{ fontSize: '12px', fontWeight: 500, color: 'var(--text-tertiary)', textTransform: 'uppercase', letterSpacing: '0.04em' }}>Risk</th>
+                        <th className="text-left p-3" style={{ fontSize: '12px', fontWeight: 500, color: 'var(--text-tertiary)', textTransform: 'uppercase', letterSpacing: '0.04em' }}>Time</th>
                       </tr>
                     </thead>
-                    <tbody className="divide-y divide-gray-700">
-                      {recentCalls.map((call) => (
-                        <tr key={call.call_id_masked} className="hover:bg-gray-700/50">
-                          <td className="p-3 font-mono text-sm">{call.call_id_masked}</td>
-                          <td className="p-3 text-sm">{call.from_number}</td>
-                          <td className={`p-3 text-sm ${getStatusColor(call.status)}`}>
+                    <tbody style={{ borderTop: '1px solid var(--border-primary)' }}>
+                      {recentCalls.map((call, idx) => (
+                        <tr 
+                          key={call.call_id_masked} 
+                          className="transition-colors"
+                          style={{ 
+                            borderBottom: idx < recentCalls.length - 1 ? '1px solid var(--border-primary)' : 'none',
+                            background: 'var(--bg-secondary)'
+                          }}
+                        >
+                          <td className="p-3 font-mono" style={{ fontSize: '13px' }}>{call.call_id_masked}</td>
+                          <td className="p-3" style={{ fontSize: '13px' }}>{call.from_number}</td>
+                          <td className={`p-3 ${getStatusColor(call.status)}`} style={{ fontSize: '13px' }}>
                             {call.status}
                           </td>
-                          <td className="p-3 text-sm">
+                          <td className="p-3" style={{ fontSize: '13px' }}>
                             {call.duration_seconds ? `${call.duration_seconds}s` : '-'}
                           </td>
-                          <td className="p-3 text-sm">{call.triage_events}</td>
+                          <td className="p-3" style={{ fontSize: '13px' }}>{call.triage_events}</td>
                           <td className="p-3">
                             <span className={`px-2 py-0.5 rounded text-xs font-medium ${getRiskColor(call.highest_risk)}`}>
                               {call.highest_risk || 'N/A'}
                             </span>
                           </td>
-                          <td className="p-3 text-sm text-gray-400">
+                          <td className="p-3" style={{ fontSize: '13px', color: 'var(--text-tertiary)' }}>
                             {new Date(call.initiated_at).toLocaleTimeString()}
                           </td>
                         </tr>
@@ -333,9 +383,12 @@ export default function CallsPage() {
         )}
 
         {/* Safety Notice */}
-        <div className="mt-8 p-4 bg-amber-900/30 border border-amber-700 rounded-lg">
-          <p className="text-amber-300 text-sm">
-            ⚠️ <strong>Research System Only:</strong> This telephony integration is for research 
+        <div 
+          className="mt-12 p-4 rounded-lg"
+          style={{ background: 'var(--bg-tertiary)', border: '1px solid var(--border-primary)' }}
+        >
+          <p style={{ fontSize: '13px', color: 'var(--text-secondary)' }}>
+            <strong>Research System Only:</strong> This telephony integration is for research 
             and simulation purposes only. Phone numbers are masked and no audio is persisted.
           </p>
         </div>
