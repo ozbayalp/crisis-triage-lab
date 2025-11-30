@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
+import { getBackendHttpUrl } from '@/lib/config';
 
 /**
  * CrisisTriage AI - Phone Calls Dashboard
@@ -9,7 +10,7 @@ import { useState, useEffect, useCallback } from 'react';
  * Phone integration requires Twilio configuration.
  */
 
-const API_BASE = process.env.NEXT_PUBLIC_BACKEND_HTTP_URL || 'http://localhost:8000';
+const API_BASE = getBackendHttpUrl();
 
 interface CallSession {
   call_id_masked: string;

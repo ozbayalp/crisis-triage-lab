@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { TriageAnalytics, TriageEvent } from '@/lib/types';
+import { getBackendHttpUrl } from '@/lib/config';
 
 /**
  * Sessions Page
@@ -10,7 +11,7 @@ import { TriageAnalytics, TriageEvent } from '@/lib/types';
  * Shows recent triage events grouped by session with summary statistics.
  */
 
-const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
+const API_BASE = getBackendHttpUrl();
 
 interface SessionSummary {
   sessionId: string;
