@@ -311,6 +311,7 @@ class InputModality(str, Enum):
     """Source modality of the triage input."""
     TEXT = "text"
     AUDIO = "audio"
+    PHONE_CALL = "phone_call"
     MIXED = "mixed"
 
 

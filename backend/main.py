@@ -13,7 +13,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from app.config import settings, get_settings
-from app.api import routes, websocket
+from app.api import routes, websocket, health
 from app.core.pipeline import TriagePipeline, create_pipeline
 
 # Configure logging
@@ -67,10 +67,32 @@ async def lifespan(app: FastAPI):
         settings.analytics_max_events,
     )
     
+    # Initialize telephony if enabled
+    if settings.enable_telephony_integration:
+        from app.telephony.session_store import init_call_store
+        call_store = await init_call_store(
+            max_sessions=settings.telephony_max_concurrent_calls,
+            session_ttl_minutes=settings.telephony_session_max_minutes,
+        )
+        app.state.call_store = call_store
+        logger.info(
+            "   Telephony: enabled=True, provider=%s, max_calls=%d",
+            settings.telephony_provider,
+            settings.telephony_max_concurrent_calls,
+        )
+    else:
+        logger.info("   Telephony: enabled=False")
+    
     yield
     
     # === Shutdown ===
     logger.info("👋 CrisisTriage AI shutting down")
+    
+    # Shutdown telephony if enabled
+    if settings.enable_telephony_integration and hasattr(app.state, 'call_store'):
+        await app.state.call_store.stop()
+        logger.info("   Telephony shutdown complete")
+    
     await pipeline.shutdown()
     logger.info("✅ Shutdown complete")
 
@@ -98,7 +120,13 @@ def create_app() -> FastAPI:
     
     # --- Routes ---
     app.include_router(routes.router, prefix="/api")
+    app.include_router(health.router)
     app.include_router(websocket.router)
+    
+    # Telephony routes (conditionally loaded)
+    if settings.enable_telephony_integration:
+        from app.telephony.router import router as telephony_router
+        app.include_router(telephony_router)
     
     return app
 

@@ -100,6 +100,20 @@ class Settings(BaseSettings):
     secret_key: str = "CHANGE-ME-IN-PRODUCTION"
     allowed_origins: str = "http://localhost:3000,http://127.0.0.1:3000"
     
+    # --- Telephony Integration ---
+    enable_telephony_integration: bool = False  # Enable phone call integration
+    telephony_provider: str = "generic"         # Provider: generic, twilio, simulator
+    telephony_audio_sample_rate: int = 16000    # Target audio sample rate
+    telephony_audio_channels: int = 1           # Audio channels (mono)
+    telephony_audio_format: str = "pcm16"       # Target audio format
+    telephony_session_max_minutes: int = 60     # Maximum call duration
+    telephony_max_concurrent_calls: int = 100   # Maximum concurrent calls
+    mask_phone_numbers: bool = True             # Mask phone numbers in logs
+    
+    # Twilio-specific (optional)
+    twilio_account_sid: str = ""                # Twilio Account SID
+    twilio_auth_token: str = ""                 # Twilio Auth Token
+    
     @property
     def allowed_origins_list(self) -> List[str]:
         """Parse comma-separated origins into list."""
