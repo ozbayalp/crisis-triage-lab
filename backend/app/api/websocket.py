@@ -54,6 +54,9 @@ session_states: Dict[str, dict] = {}
 # Audio buffers per session (for chunking before processing)
 audio_buffers: Dict[str, bytearray] = {}
 
+# Track silence duration per session (for end-of-speech detection)
+silence_counters: Dict[str, int] = {}
+
 
 # =============================================================================
 # WebSocket Endpoint
@@ -183,11 +186,42 @@ async def session_stream(websocket: WebSocket, session_id: str):
         active_connections.pop(session_id, None)
         session_states.pop(session_id, None)
         audio_buffers.pop(session_id, None)
+        silence_counters.pop(session_id, None)
 
 
 # =============================================================================
 # Message Handlers
 # =============================================================================
+
+def detect_silence(audio_bytes: bytes, threshold: float = 0.02) -> bool:
+    """
+    Detect if the audio chunk is mostly silence.
+    
+    Args:
+        audio_bytes: PCM 16-bit audio bytes
+        threshold: RMS threshold below which is considered silence (0-1 scale)
+    
+    Returns:
+        True if the audio is mostly silence
+    """
+    import struct
+    
+    if len(audio_bytes) < 2:
+        return True
+    
+    # Convert bytes to 16-bit samples
+    num_samples = len(audio_bytes) // 2
+    samples = struct.unpack(f'<{num_samples}h', audio_bytes[:num_samples * 2])
+    
+    # Calculate RMS
+    sum_squares = sum(s * s for s in samples)
+    rms = (sum_squares / num_samples) ** 0.5
+    
+    # Normalize to 0-1 scale (max 16-bit value is 32767)
+    normalized_rms = rms / 32767.0
+    
+    return normalized_rms < threshold
+
 
 async def handle_audio_chunk(
     session_id: str,
@@ -199,17 +233,14 @@ async def handle_audio_chunk(
     """
     Process an incoming audio chunk through the triage pipeline.
     
-    Audio is buffered until we have enough for meaningful processing
-    (configured by settings.audio_chunk_min_bytes, default ~1 second).
+    Audio is buffered until EITHER:
+    1. We have enough audio (~5 seconds minimum)
+    2. User stops speaking (silence detected after speech)
+    
+    This ensures we get meaningful paragraphs for triage, not single words.
     
     Audio Format Expected:
         PCM 16-bit, 16kHz, mono (32000 bytes per second)
-    
-    The pipeline will:
-    1. Transcribe the audio (Whisper)
-    2. Extract prosody features
-    3. Run triage model
-    4. Return result with explanation
     """
     # Get buffer for this session
     buffer = audio_buffers.get(session_id)
@@ -220,38 +251,71 @@ async def handle_audio_chunk(
     # Append new audio to buffer
     buffer.extend(audio_chunk)
     
-    # Get chunk size threshold from settings
-    min_chunk_size = getattr(settings, 'audio_chunk_min_bytes', 32000)  # ~1 second
-    max_buffer_size = getattr(settings, 'audio_buffer_max_bytes', 320000)  # ~10 seconds
+    # --- Smart buffering with silence detection ---
+    # Minimum: 5 seconds of audio (160000 bytes at 16kHz 16-bit mono)
+    # Maximum: 15 seconds of audio (480000 bytes)
+    min_chunk_size = getattr(settings, 'audio_chunk_min_bytes', 160000)  # ~5 seconds
+    max_buffer_size = getattr(settings, 'audio_buffer_max_bytes', 480000)  # ~15 seconds
     
-    # Prevent buffer from growing too large
-    if len(buffer) > max_buffer_size:
-        logger.warning(
-            "Audio buffer overflow for session %s (%d bytes), trimming",
+    # Silence detection parameters
+    silence_threshold = 0.015  # RMS threshold for silence
+    silence_chunks_required = 3  # Number of consecutive silent chunks to trigger processing
+    
+    # Check for silence in the latest chunk
+    is_silent = detect_silence(audio_chunk, silence_threshold)
+    
+    # Track consecutive silence
+    if session_id not in silence_counters:
+        silence_counters[session_id] = 0
+    
+    if is_silent:
+        silence_counters[session_id] += 1
+    else:
+        silence_counters[session_id] = 0
+    
+    # Prevent buffer from growing too large - force process if at max
+    if len(buffer) >= max_buffer_size:
+        logger.info(
+            "Audio buffer at max size (%d bytes), processing (session=%s)",
+            len(buffer), session_id[:8]
+        )
+        # Process the buffer (will happen below)
+    
+    # Determine if we should process now
+    should_process = False
+    reason = ""
+    
+    # Case 1: Buffer at max size - must process
+    if len(buffer) >= max_buffer_size:
+        should_process = True
+        reason = "max_buffer"
+    
+    # Case 2: Have minimum audio AND detected end of speech (silence)
+    elif len(buffer) >= min_chunk_size and silence_counters[session_id] >= silence_chunks_required:
+        should_process = True
+        reason = "silence_detected"
+        logger.debug(
+            "End of speech detected (session=%s, buffer=%d bytes)",
             session_id[:8], len(buffer)
         )
-        # Keep only the most recent audio
-        del buffer[:len(buffer) - max_buffer_size]
     
-    # Check if we have enough audio to process
-    if len(buffer) < min_chunk_size:
-        # Not enough audio yet, wait for more
-        logger.debug(
-            "Buffering audio: %d/%d bytes (session=%s)",
-            len(buffer), min_chunk_size, session_id[:8]
-        )
+    # Case 3: Not enough audio yet - keep buffering
+    if not should_process:
+        if len(buffer) % 50000 == 0:  # Log every ~1.5 seconds
+            logger.debug(
+                "Buffering audio: %d/%d bytes, silence_count=%d (session=%s)",
+                len(buffer), min_chunk_size, silence_counters[session_id], session_id[:8]
+            )
         return
+    
+    # Reset silence counter
+    silence_counters[session_id] = 0
     
     # Extract the chunk to process
     chunk_to_process = bytes(buffer)
     
-    # Clear the buffer (or keep some overlap for next chunk)
-    # Keep last ~100ms for overlap (3200 bytes at 16kHz 16-bit)
-    overlap_bytes = 3200
-    if len(buffer) > overlap_bytes:
-        del buffer[:len(buffer) - overlap_bytes]
-    else:
-        buffer.clear()
+    # Clear the buffer completely for fresh start
+    buffer.clear()
     
     try:
         # Update stats
