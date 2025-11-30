@@ -1,0 +1,65 @@
+version: "3.9"
+
+services:
+  # ===========================================
+  # Backend API (FastAPI)
+  # ===========================================
+  backend:
+    build:
+      context: .
+      dockerfile: infra/docker/Dockerfile.backend
+    ports:
+      - "8000:8000"
+    environment:
+      - APP_ENV=development
+      - REDIS_URL=redis://redis:6379/0
+    volumes:
+      - ./backend:/app/backend
+      - ./ml/src:/app/ml/src  # Shared ML code
+      - ./models:/app/models  # Model weights (mount from host)
+    depends_on:
+      - redis
+    command: uvicorn backend.main:app --host 0.0.0.0 --port 8000 --reload
+
+  # ===========================================
+  # Frontend (Next.js)
+  # ===========================================
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: ../infra/docker/Dockerfile.frontend
+    ports:
+      - "3000:3000"
+    environment:
+      - NEXT_PUBLIC_API_URL=http://localhost:8000
+      - NEXT_PUBLIC_WS_URL=ws://localhost:8000
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules  # Preserve container node_modules
+    command: npm run dev
+
+  # ===========================================
+  # Redis (session state, optional persistence)
+  # ===========================================
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    command: redis-server --appendonly no  # Ephemeral by default
+
+volumes:
+  redis_data:
+
+# ===========================================
+# Notes:
+# - For GPU support, use nvidia-docker and add:
+#   deploy:
+#     resources:
+#       reservations:
+#         devices:
+#           - capabilities: [gpu]
+# - Model weights should be downloaded separately
+#   and mounted at ./models/
+# ===========================================

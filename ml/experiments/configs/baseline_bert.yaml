@@ -1,0 +1,73 @@
+# =============================================================================
+# CrisisTriage AI - Baseline BERT Configuration
+# =============================================================================
+#
+# Standard training configuration for triage classification.
+# Uses DistilBERT for efficiency while maintaining good performance.
+#
+# IMPORTANT: This configuration is for RESEARCH/SIMULATION ONLY.
+# The resulting model is NOT suitable for real-world crisis intervention.
+#
+# Usage:
+#   python -m ml.src.training.train_triage_model --config ml/experiments/configs/baseline_bert.yaml
+#
+
+# --- Model ---
+model_name_or_path: "distilbert-base-uncased"
+num_labels: 4  # low, medium, high, imminent
+
+# --- Tokenization ---
+max_seq_length: 256
+padding: "max_length"
+truncation: true
+
+# --- Data ---
+# Replace these with your actual dataset paths
+train_path: "data/synthetic/train.csv"
+val_path: "data/synthetic/val.csv"
+test_path: "data/synthetic/test.csv"
+text_column: "text"
+label_column: "label"
+
+# --- Training Hyperparameters ---
+batch_size: 16
+eval_batch_size: 32
+num_epochs: 3
+learning_rate: 2.0e-5
+weight_decay: 0.01
+warmup_ratio: 0.1
+max_grad_norm: 1.0
+
+# --- Optimization ---
+optimizer: "adamw"
+scheduler: "linear"  # linear warmup then linear decay
+
+# --- Regularization ---
+dropout: 0.1
+label_smoothing: 0.0
+
+# --- Output ---
+output_dir: "./outputs/baseline_bert"
+save_strategy: "epoch"
+save_total_limit: 2
+
+# --- Logging ---
+logging_steps: 50
+log_to_file: true
+
+# --- Reproducibility ---
+seed: 42
+deterministic: true
+
+# --- Hardware ---
+device: "auto"
+fp16: false
+gradient_accumulation_steps: 1
+
+# --- Experiment Metadata ---
+experiment_name: "baseline_bert"
+tags:
+  - "baseline"
+  - "distilbert"
+  - "text-only"
+notes: "Baseline DistilBERT model for triage classification. Research use only."

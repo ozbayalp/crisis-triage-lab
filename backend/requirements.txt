@@ -1,0 +1,55 @@
+# ============================================
+# CrisisTriage AI - Backend Dependencies
+# ============================================
+
+# --- Web Framework ---
+fastapi>=0.104.0
+uvicorn[standard]>=0.24.0
+pydantic>=2.5.0
+pydantic-settings>=2.1.0
+
+# --- WebSocket ---
+websockets>=12.0
+
+# --- Async & Concurrency ---
+anyio>=4.0.0
+
+# --- HTTP Client ---
+httpx>=0.25.0
+
+# --- Redis (session state) ---
+redis>=5.0.0
+
+# --- ML Inference (local) ---
+# Note: Install PyTorch separately based on your system (CPU/CUDA)
+# See: https://pytorch.org/get-started/locally/
+# torch>=2.1.0
+
+# Whisper for ASR
+openai-whisper>=20231117
+# OR faster-whisper for optimized inference:
+# faster-whisper>=0.9.0
+
+# Audio processing
+librosa>=0.10.0
+soundfile>=0.12.0
+numpy>=1.24.0
+
+# --- NLP ---
+transformers>=4.35.0
+tokenizers>=0.15.0
+
+# --- Utilities ---
+python-dotenv>=1.0.0
+orjson>=3.9.0  # Fast JSON
+
+# --- Logging & Monitoring ---
+structlog>=23.2.0
+
+# --- Development ---
+pytest>=7.4.0
+pytest-asyncio>=0.21.0
+httpx>=0.25.0  # For TestClient
+
+# --- Type Checking ---
+mypy>=1.7.0

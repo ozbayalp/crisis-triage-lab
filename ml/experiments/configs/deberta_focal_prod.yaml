@@ -1,0 +1,96 @@
+# =============================================================================
+# CrisisTriage AI - Production Training Configuration
+# =============================================================================
+# DeBERTa-v3-small with focal loss, safety-weighted classes
+# Target: Macro F1 > 0.82, IMMINENT recall > 0.92, ECE < 0.05
+#
+# Usage:
+#   python -m ml.src.training.train_triage_model --config ml/experiments/configs/deberta_focal_prod.yaml
+
+# --- Metadata ---
+experiment_name: "deberta_v3_focal_prod"
+tags: ["production", "deberta", "focal-loss", "v1"]
+notes: "Production config targeting high IMMINENT recall with calibrated confidence"
+
+# --- Model ---
+model_name_or_path: "microsoft/deberta-v3-small"
+num_labels: 4
+classifier_dropout: 0.15
+
+# --- Tokenization ---
+max_seq_length: 256
+padding: "max_length"
+truncation: true
+
+# --- Data ---
+train_path: "data/synthetic/train.csv"
+val_path: "data/synthetic/val.csv"
+test_path: "data/synthetic/test.csv"
+text_column: "text"
+label_column: "label"
+
+# --- Training ---
+batch_size: 32
+eval_batch_size: 64
+gradient_accumulation_steps: 2
+num_epochs: 10
+
+learning_rate: 2.0e-5
+warmup_ratio: 0.1
+lr_scheduler: "cosine"
+
+optimizer: "adamw"
+adam_beta1: 0.9
+adam_beta2: 0.999
+weight_decay: 0.01
+max_grad_norm: 1.0
+
+# --- Loss ---
+loss_type: "focal"
+focal_gamma: 2.0
+class_weights: [0.5, 0.8, 1.5, 2.5]  # LOW, MEDIUM, HIGH, IMMINENT
+label_smoothing: 0.05
+
+# --- Regularization ---
+dropout: 0.1
+layerwise_lr_decay: 0.95
+layerwise_lr_decay_enabled: true
+
+# --- Evaluation ---
+eval_strategy: "epoch"
+metric_for_best_model: "f1_macro"
+early_stopping_patience: 3
+early_stopping_threshold: 0.001
+
+# --- Checkpointing ---
+save_strategy: "epoch"
+save_total_limit: 3
+load_best_model_at_end: true
+
+# --- Output ---
+output_dir: "./outputs/deberta_focal_prod"
+
+# --- Logging ---
+logging_steps: 50
+log_to_file: true
+
+# --- Hardware ---
+device: "auto"
+fp16: true
+gradient_checkpointing: false
+
+# --- Reproducibility ---
+seed: 42
+deterministic: true
+
+# --- Prosody (v2 reserved) ---
+prosody_enabled: false
+prosody_features:
+  - "pitch_mean"
+  - "pitch_std"
+  - "energy_mean"
+  - "speech_rate"
+  - "pause_ratio"
+  - "jitter"
+  - "shimmer"
+prosody_fusion: "late"  # early, late, attention, moe

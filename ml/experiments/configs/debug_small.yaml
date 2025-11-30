@@ -1,0 +1,69 @@
+# =============================================================================
+# CrisisTriage AI - Debug/Quick Test Configuration
+# =============================================================================
+#
+# Minimal configuration for quick sanity checks and debugging.
+# Uses tiny batch size and few epochs to run fast.
+#
+# Usage:
+#   python -m ml.src.training.train_triage_model --config ml/experiments/configs/debug_small.yaml
+#
+
+# --- Model ---
+model_name_or_path: "distilbert-base-uncased"
+num_labels: 4
+
+# --- Tokenization ---
+max_seq_length: 128  # Shorter for speed
+padding: "max_length"
+truncation: true
+
+# --- Data ---
+# Use small subset or same files - will process quickly with small batch
+train_path: "ml/data/synthetic/train.csv"
+val_path: "ml/data/synthetic/val.csv"
+test_path: "ml/data/synthetic/test.csv"
+text_column: "text"
+label_column: "label"
+
+# --- Training Hyperparameters (minimal for quick test) ---
+batch_size: 4
+eval_batch_size: 8
+num_epochs: 1
+learning_rate: 5.0e-5
+weight_decay: 0.0
+warmup_ratio: 0.0
+max_grad_norm: 1.0
+
+# --- Optimization ---
+optimizer: "adamw"
+scheduler: "constant"
+
+# --- Regularization ---
+dropout: 0.1
+label_smoothing: 0.0
+
+# --- Output ---
+output_dir: "./outputs/debug_small"
+save_strategy: "epoch"
+save_total_limit: 1
+
+# --- Logging ---
+logging_steps: 10
+log_to_file: false
+
+# --- Reproducibility ---
+seed: 42
+deterministic: false  # Faster without deterministic ops
+
+# --- Hardware ---
+device: "auto"
+fp16: false
+gradient_accumulation_steps: 1
+
+# --- Experiment Metadata ---
+experiment_name: "debug_small"
+tags:
+  - "debug"
+  - "quick-test"
+notes: "Minimal config for debugging training pipeline. Not for real experiments."

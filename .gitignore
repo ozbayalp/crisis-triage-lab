@@ -1,0 +1,121 @@
+# ============================================
+# Python
+# ============================================
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+# Python lib directories (not frontend/src/lib/)
+/lib/
+/lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# Virtual environments
+.venv/
+venv/
+ENV/
+env/
+
+# PyTorch / ML artifacts
+*.pt
+*.pth
+*.onnx
+*.bin
+*.safetensors
+mlruns/
+wandb/
+lightning_logs/
+
+# Jupyter
+.ipynb_checkpoints/
+*.ipynb_checkpoints
+
+# ============================================
+# Node.js / Frontend
+# ============================================
+node_modules/
+.next/
+out/
+.nuxt/
+dist/
+*.tsbuildinfo
+.npm
+.yarn/
+
+# ============================================
+# Environment & Secrets
+# ============================================
+.env
+.env.local
+.env.*.local
+*.pem
+*.key
+secrets/
+
+# ============================================
+# IDE & OS
+# ============================================
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+Thumbs.db
+
+# ============================================
+# Data (privacy-sensitive)
+# ============================================
+data/raw/
+data/processed/
+data/synthetic/*.wav
+data/synthetic/*.mp3
+data/synthetic/*.json
+!data/README.md
+!data/synthetic/.gitkeep
+
+# ============================================
+# ML Experiment Runs & Outputs
+# ============================================
+ml/experiments/runs/
+ml/outputs/
+# Keep training data (CSVs are small)
+!ml/data/synthetic/*.csv
+
+# ============================================
+# Logs & Temp
+# ============================================
+logs/
+*.log
+tmp/
+temp/
+.cache/
+
+# ============================================
+# Docker
+# ============================================
+*.tar
+docker-compose.override.yml
+
+# ============================================
+# Coverage & Testing
+# ============================================
+.coverage
+htmlcov/
+.pytest_cache/
+.tox/
+coverage.xml
+*.cover
