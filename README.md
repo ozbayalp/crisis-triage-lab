@@ -10,8 +10,6 @@
 
 ## Project Summary for Reviewers
 
-This project demonstrates production-grade full-stack engineering skills through the development of a real-time AI triage system. It showcases:
-
 - **Full-Stack Development**: React/Next.js frontend with FastAPI backend, WebSocket streaming
 - **Machine Learning Integration**: Custom neural classifier (DistilBERT-based), local Whisper ASR
 - **Real-Time Processing**: Live audio capture, silence detection, streaming transcription
