@@ -314,6 +314,10 @@ class TriagePipeline:
             result = await self._run_inference(ctx, transcription.text, prosody)
             metrics.inference_ms = (time.time() - inference_start) * 1000
             
+            # Attach transcript to result for frontend display
+            result.transcript_segment = transcription.text
+            result.prosody_features = prosody
+            
             metrics.total_ms = (time.time() - start_time) * 1000
             
             # Execute post-hooks (analytics with AUDIO modality)
