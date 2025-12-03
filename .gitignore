@@ -96,6 +96,15 @@ ml/outputs/
 !ml/data/synthetic/*.csv
 
 # ============================================
+# ML Models (compressed archives for GitHub)
+# ============================================
+# Keep compressed model archives
+!ml/models/
+!ml/models/**/*.zip
+!ml/models/**/*.z[0-9][0-9]
+!ml/models/**/README.md
+
+# ============================================
 # Logs & Temp
 # ============================================
 logs/
