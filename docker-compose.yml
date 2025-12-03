@@ -16,10 +16,11 @@ services:
     volumes:
       - ./backend:/app/backend
       - ./ml/src:/app/ml/src  # Shared ML code
-      - ./models:/app/models  # Model weights (mount from host)
+      - ./ml/models:/app/models  # Model weights (mount from host)
     depends_on:
       - redis
-    command: uvicorn backend.main:app --host 0.0.0.0 --port 8000 --reload
+    working_dir: /app/backend
+    command: uvicorn main:app --host 0.0.0.0 --port 8000 --reload
 
   # ===========================================
   # Frontend (Next.js)
@@ -27,16 +28,14 @@ services:
   frontend:
     build:
       context: ./frontend
-      dockerfile: ../infra/docker/Dockerfile.frontend
+      dockerfile: Dockerfile
     ports:
       - "3000:3000"
     environment:
-      - NEXT_PUBLIC_API_URL=http://localhost:8000
-      - NEXT_PUBLIC_WS_URL=ws://localhost:8000
-    volumes:
-      - ./frontend:/app
-      - /app/node_modules  # Preserve container node_modules
-    command: npm run dev
+      - NEXT_PUBLIC_BACKEND_HTTP_URL=http://backend:8000
+      - NEXT_PUBLIC_BACKEND_WS_URL=ws://backend:8000
+    depends_on:
+      - backend
 
   # ===========================================
   # Redis (session state, optional persistence)
