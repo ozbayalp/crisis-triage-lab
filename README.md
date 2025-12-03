@@ -109,14 +109,19 @@ The fastest way to run everything:
 
 ```bash
 # 1. Clone the repository
-git clone https://github.com/yourusername/TriageSoftware.git
-cd TriageSoftware
+git clone https://github.com/ozbayalp/crisis-triage-lab.git
+cd crisis-triage-lab
 
-# 2. Start with Docker Compose
+# 2. Extract the pre-trained model
+cd ml/models/neural_triage_v1
+zip -s 0 best_model.zip --out combined.zip && unzip combined.zip
+cd ../../..
+
+# 3. Start with Docker Compose
 docker-compose up --build
 ```
 
-Wait 2-3 minutes for initial model downloads, then open:
+Wait 2-3 minutes for initial setup, then open:
 - **Frontend Dashboard**: http://localhost:3000
 - **Backend API Docs**: http://localhost:8000/docs
 
@@ -126,22 +131,39 @@ If you prefer running without Docker:
 
 ```bash
 # 1. Clone and enter repo
-git clone https://github.com/yourusername/TriageSoftware.git
-cd TriageSoftware
+git clone https://github.com/ozbayalp/crisis-triage-lab.git
+cd crisis-triage-lab
 
-# 2. Backend setup
+# 2. Extract the pre-trained model
+cd ml/models/neural_triage_v1
+zip -s 0 best_model.zip --out combined.zip && unzip combined.zip
+cd ../../..
+
+# 3. Backend setup
 cd backend
 python -m venv .venv
 source .venv/bin/activate  # Windows: .venv\Scripts\activate
 pip install -r requirements.txt
 cp .env.example .env
+# Edit .env to enable the neural model (see below)
 python -m uvicorn main:app --host 0.0.0.0 --port 8000
 
-# 3. Frontend setup (new terminal)
+# 4. Frontend setup (new terminal)
 cd frontend
 npm install
-cp .env.local.example .env.local  # If exists
+cp .env.local.example .env.local
 npm run dev
+```
+
+### Enabling the Neural Model
+
+After extracting the model, edit `backend/.env` to use it:
+
+```bash
+# Change these lines in backend/.env:
+TRANSCRIPTION_BACKEND=whisper
+TRIAGE_MODEL_BACKEND=neural
+NEURAL_MODEL_DIR=../ml/models/neural_triage_v1/best_model
 ```
 
 ### Testing the System

@@ -13,10 +13,14 @@ services:
     environment:
       - APP_ENV=development
       - REDIS_URL=redis://redis:6379/0
+      - TRANSCRIPTION_BACKEND=whisper
+      - TRIAGE_MODEL_BACKEND=neural
+      - NEURAL_MODEL_DIR=/app/models/neural_triage_v1/best_model
+      - ALLOWED_ORIGINS=*
     volumes:
       - ./backend:/app/backend
       - ./ml/src:/app/ml/src  # Shared ML code
-      - ./ml/models:/app/models  # Model weights (mount from host)
+      - ./ml/models:/app/models  # Model weights (extract first!)
     depends_on:
       - redis
     working_dir: /app/backend
@@ -53,12 +57,14 @@ volumes:
 
 # ===========================================
 # Notes:
+# - IMPORTANT: Extract the model before running:
+#   cd ml/models/neural_triage_v1
+#   zip -s 0 best_model.zip --out combined.zip && unzip combined.zip
+#
 # - For GPU support, use nvidia-docker and add:
 #   deploy:
 #     resources:
 #       reservations:
 #         devices:
 #           - capabilities: [gpu]
-# - Model weights should be downloaded separately
-#   and mounted at ./models/
 # ===========================================

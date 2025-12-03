@@ -22,13 +22,17 @@ The model is split into multiple zip parts due to GitHub's 100MB file limit:
 To extract the model:
 
 ```bash
-# Combine and extract (macOS/Linux)
+# macOS/Linux
 zip -s 0 best_model.zip --out combined.zip
 unzip combined.zip
 
-# Or on Windows with 7-Zip:
-# Right-click best_model.zip -> Extract Here
+# Windows (PowerShell) - requires 7-Zip installed
+# Option 1: Use 7-Zip GUI - right-click best_model.zip -> Extract Here
+# Option 2: Command line with 7-Zip:
+& "C:\Program Files\7-Zip\7z.exe" x best_model.zip
 ```
+
+After extraction, you should have a `best_model/` directory containing the model files.
 
 ## Usage
 
